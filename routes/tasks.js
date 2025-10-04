@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
+const { body, validationResult } = require('express-validator');
+const auth = require('../middleware/auth');
 
-router.get("/", (req, res) => {
+router.get("/", auth, (req, res) => {
     db.all("SELECT * FROM tasks", [], (err, rows) => {
         if (err) {
             res.status(400).json({ "error": err.message });
@@ -10,6 +12,75 @@ router.get("/", (req, res) => {
         }
         res.json({ data: rows });
     });
+});
+
+router.post("/", auth,
+    body('name').notEmpty(),
+    (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    const { name, description, role_id, phase_id } = req.body;
+    db.run(
+        `INSERT INTO tasks (name, description, role_id, phase_id) VALUES (?, ?, ?, ?)`,
+        [name, description, role_id, phase_id],
+        function (err) {
+            if (err) {
+                next(err);
+            } else {
+                const newTaskId = this.lastID;
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Created task ${name} (ID: ${newTaskId})`],
+                    (err) => { if (err) next(err); }
+                );
+                res.json({ id: newTaskId });
+            }
+        }
+    );
+});
+
+router.put("/:id", auth,
+    body('name').notEmpty(),
+    (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    const { name, description, role_id, phase_id } = req.body;
+    db.run(
+        `UPDATE tasks SET name = ?, description = ?, role_id = ?, phase_id = ? WHERE id = ?`,
+        [name, description, role_id, phase_id, req.params.id],
+        function (err) {
+            if (err) {
+                next(err);
+            } else {
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Updated task ${name} (ID: ${req.params.id})`],
+                    (err) => { if (err) next(err); }
+                );
+                res.json({ changes: this.changes });
+            }
+        }
+    );
+});
+
+router.delete("/:id", auth, (req, res, next) => {
+    db.run(
+        `DELETE FROM tasks WHERE id = ?`,
+        req.params.id,
+        function (err) {
+            if (err) {
+                next(err);
+            } else {
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Deleted task with ID: ${req.params.id}`],
+                    (err) => { if (err) next(err); }
+                );
+                res.json({ changes: this.changes });
+            }
+        }
+    );
 });
 
 module.exports = router;

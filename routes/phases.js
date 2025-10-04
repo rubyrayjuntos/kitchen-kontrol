@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
 const { body, validationResult } = require('express-validator');
+const auth = require('../middleware/auth');
 
 router.get("/", (req, res) => {
     db.all("SELECT * FROM phases", [], (err, rows) => {
@@ -13,7 +14,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.put("/:id",
+router.put("/:id", auth,
     body('title').notEmpty(),
     body('time').notEmpty(),
     body('status').notEmpty(),

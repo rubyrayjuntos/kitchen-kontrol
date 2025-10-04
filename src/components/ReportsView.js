@@ -1,7 +1,12 @@
 
 import React, { useState } from 'react';
+import UsersWidget from './UsersWidget';
+import RolesWidget from './RolesWidget';
+import TasksWidget from './TasksWidget';
+import useStore from '../store';
 
 const ReportsView = () => {
+    const { auditLog, staffPerformance } = useStore();
     const [selectedReport, setSelectedReport] = useState(null);
     const [dateRange, setDateRange] = useState({ start: '2025-09-16', end: '2025-09-22' });
     
@@ -28,19 +33,15 @@ const ReportsView = () => {
       ]
     };
 
-    const auditTrails = [
-      { date: '2025-09-22', time: '08:30', user: 'John Smith', action: 'Completed Equipment Temps', log: 'equipment-temps' },
-      { date: '2025-09-22', time: '10:15', user: 'Maria Garcia', action: 'Updated Food Temps', log: 'food-temps' },
-      { date: '2025-09-22', time: '11:45', user: 'Sarah Johnson', action: 'Completed Sanitation Setup', log: 'sanitation-setup' },
-      { date: '2025-09-22', time: '13:20', user: 'Carlos Rodriguez', action: 'Updated Reimbursable Meals', log: 'reimbursable-meals' },
-              { date: '2025-09-21', time: '14:00', user: 'Ana Martinez', action: 'Completed Zone Cleaning', log: 'planograms' }    ];
-
     const reportCategories = [
       { id: 'weekly-status', name: 'Weekly Log Status', description: 'Completion rates for all required logs' },
       { id: 'reimbursable-meals', name: 'Reimbursable Meals Report', description: 'Daily meal counts and revenue tracking' },
       { id: 'audit-trail', name: 'Audit Trail', description: 'Complete log of all system entries and modifications' },
       { id: 'compliance-summary', name: 'Compliance Summary', description: 'Overview of all compliance requirements' },
-      { id: 'staff-performance', name: 'Staff Performance', description: 'Individual staff task completion tracking' }
+      { id: 'staff-performance', name: 'Staff Performance', description: 'Individual staff task completion tracking' },
+      { id: 'user-management', name: 'User Management', description: 'Add, edit, and delete users' },
+      { id: 'roles-management', name: 'Roles Management', description: 'Add, edit, and delete roles' },
+      { id: 'tasks-management', name: 'Tasks Management', description: 'Add, edit, and delete tasks' }
     ];
 
     const renderReportContent = () => {
@@ -197,15 +198,15 @@ const ReportsView = () => {
               <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold mb-4">Recent Activity</h4>
                 <div className="space-y-2">
-                  {auditTrails.map((entry, index) => (
+                  {auditLog.map((entry, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-white rounded border">
                       <div>
                         <div className="font-medium">{entry.action}</div>
                         <div className="text-sm text-gray-600">by {entry.user}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium">{entry.date}</div>
-                        <div className="text-sm text-gray-600">{entry.time}</div>
+                        <div className="text-sm font-medium">{new Date(entry.timestamp).toLocaleDateString()}</div>
+                        <div className="text-sm text-gray-600">{new Date(entry.timestamp).toLocaleTimeString()}</div>
                       </div>
                     </div>
                   ))}
@@ -242,24 +243,33 @@ const ReportsView = () => {
           return (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {['John Smith', 'Maria Garcia', 'Carlos Rodriguez', 'Sarah Johnson', 'Ana Martinez'].map(staff => (
-                  <div key={staff} className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">{staff}</h4>
+                {staffPerformance.map(staff => (
+                  <div key={staff.id} className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">{staff.name}</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Tasks Complete</span>
-                        <span className="font-semibold">85%</span>
+                        <span className="font-semibold">{staff.tasksComplete.toFixed(2)}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{ width: '85%' }}></div>
+                        <div className="bg-green-600 h-2 rounded-full" style={{ width: `${staff.tasksComplete}%` }}></div>
                       </div>
-                      <div className="text-xs text-gray-600">Last activity: 2 hours ago</div>
+                      <div className="text-xs text-gray-600">Last activity: {staff.lastActivity ? new Date(staff.lastActivity).toLocaleString() : 'N/A'}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           );
+
+        case 'user-management':
+            return <UsersWidget />;
+
+        case 'roles-management':
+            return <RolesWidget />;
+
+        case 'tasks-management':
+            return <TasksWidget />;
 
         default:
           return <div>Report content not available</div>;

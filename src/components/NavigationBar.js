@@ -1,9 +1,9 @@
 import React from 'react';
-import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Globe } from 'lucide-react';
+import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Globe, Users } from 'lucide-react';
 import useStore from '../store';
 
 const NavigationBar = () => {
-    const { currentView, setCurrentView, currentLanguage, setCurrentLanguage, getCurrentTimeString, getCurrentDateString } = useStore();
+    const { currentView, setCurrentView, currentLanguage, setCurrentLanguage, getCurrentTimeString, getCurrentDateString, user } = useStore();
 
     return (
         <nav className="bg-blue-900 text-white p-4">
@@ -46,6 +46,22 @@ const NavigationBar = () => {
                 <ClipboardCheck size={18} />
                 <span>Planograms</span>
                 </button>
+                <button
+                    onClick={() => setCurrentView('my-tasks')}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'my-tasks' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
+                >
+                    <ClipboardCheck size={18} />
+                    <span>My Tasks</span>
+                </button>
+                {user?.role === 'admin' && (
+                    <button
+                    onClick={() => setCurrentView('users')}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'users' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
+                    >
+                    <Users size={18} />
+                    <span>User Management</span>
+                    </button>
+                )}
             </div>
             </div>
             <div className="flex items-center space-x-4">

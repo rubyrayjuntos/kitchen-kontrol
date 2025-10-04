@@ -1,0 +1,45 @@
+/* Tailwind entry file
+   --------------------------------------
+   Make sure Tailwind is set up in your project:
+   - tailwind.config.{js,ts}
+   - PostCSS with tailwindcss + autoprefixer
+   Then import this file in index.tsx.
+*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: design tokens / CSS vars */
+:root {
+  --app-bg: #f1f5f9; /* slate-100 */
+  --app-text: #0f172a; /* slate-900 */
+}
+
+/* Base page styling to complement Tailwind */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Utility helpers that aren't worth a Tailwind class */
+.container-narrow {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Print tweaks (the component injects its own print block for the PDF view) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

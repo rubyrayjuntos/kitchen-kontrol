@@ -9,16 +9,27 @@ import useStore from './store';
 
 import ErrorBoundary from './components/ErrorBoundary';
 
+import Login from './components/Login';
+import UserManagement from './components/UserManagement';
+import MyTasks from './components/MyTasks';
+
 const KitchenKontrol = () => {
   const {
     fetchInitialData,
     currentView,
     loading,
+    user,
   } = useStore();
 
   useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
+    if (user) {
+        fetchInitialData();
+    }
+  }, [fetchInitialData, user]);
+
+  if (!user) {
+    return <Login />;
+  }
 
   const renderCurrentView = () => {
     if (loading) {
@@ -35,6 +46,10 @@ const KitchenKontrol = () => {
         return <TrainingView />;
       case 'planograms':
         return <PlanogramView />;
+      case 'users':
+        return <UserManagement />;
+      case 'my-tasks':
+        return <MyTasks />;
       default:
         return <Dashboard />;
     }

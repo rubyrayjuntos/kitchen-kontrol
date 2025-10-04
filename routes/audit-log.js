@@ -3,16 +3,18 @@ const router = express.Router();
 const db = require('../db.js');
 const auth = require('../middleware/auth');
 
-router.get("/", auth, (req, res) => {
-    db.all("SELECT * FROM ingredients", [], (err, rows) => {
+router.get('/', auth, (req, res) => {
+    const query = `
+        SELECT al.id, u.name as user, al.action, al.timestamp
+        FROM audit_log al
+        JOIN users u ON al.user_id = u.id
+        ORDER BY al.timestamp DESC
+    `;
+    db.all(query, [], (err, rows) => {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
         }
-        db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
-            [req.user.id, `Viewed ingredients`],
-            (err) => { if (err) console.error(err); }
-        );
         res.json({ data: rows });
     });
 });

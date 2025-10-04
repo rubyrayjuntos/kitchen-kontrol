@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
 const { body, validationResult } = require('express-validator');
+const auth = require('../middleware/auth');
 
-router.post("/:id/complete",
+router.post("/:id/complete", auth,
     body('date').notEmpty(),
     body('status').notEmpty(),
     (req, res, next) => {
@@ -19,6 +20,10 @@ router.post("/:id/complete",
             if (err) {
                 next(err);
             } else {
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Completed log with ID: ${req.params.id}`],
+                    (err) => { if (err) next(err); }
+                );
                 res.json({ id: this.lastID });
             }
         }

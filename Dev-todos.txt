@@ -1,0 +1,81 @@
+Top Nav
+-Logo Design needs to be finalized
+-Tabs (Decide layout - fixed?drop-down? etc?)
+-Date Time (live with alert showing countdown time until next phase)
+-EN/ES (everything needs to be in both languages)
+-add 'News Alert' area
+
+Web App
+-Review theme/styling
+-Add dynamic background based on designs
+
+Dashboard
+-Add a widget for breakfast and lunch menus that can be edited and link to the planagram for that menu item
+-Daily Kitchen Phases
+	*Phase formatting needs to be cleaned up - (less whitespace, better color indicators, width of phases based on duration of phase [divide space by 8 hours with indicator and phases snap to that]
+	*Editing list of Phases (Add,Delete)
+		>Add,Delete Phases
+		>Edit Daily Kitchen Phase: add start and end time
+	*Current phase based on time
+	*Phase tasklist 
+		>on hover show (click to pin)
+		>check boxes need to be clickable with user audit log
+		>Role grouping needs to include assigned user
+
+-Daily Role Assignments
+	*Edit Daily Role Assignment Modal
+		>The name should be a drop down of all the users in the system, when saved the user is assigned that role
+
+-Absences
+	*Rename from 'Upcoming Absences' to 'Not Working' 
+	*Add an extra button to each line item: 'Unexcused', meaning it is an unexcused absence and is usually applied to people who call in the day of work.
+	*The line items are highlighted as follows: a) If waiting for approval the line item is highlighted in organge, b) if approved, the line item is highlighted in green, c) if unexcused, the line item is highlighted in red.
+	*For all line items that are for the current day, put an asterisk by the name
+	*ensure that the date shown on the summary widget is capable of date ranges
+	*The summary widget only shows absences for the current date and future dates (past dates are referenced from management reports)
+	*Manage Absences modal
+		>The name field is a drop down that is populated with the users in the system
+		>The date field should be a date range with a stop and start date
+
+-Quick Actions
+	*future updates to Kitchen Kontrol will add the ability to customize the Quick Actions widget
+
+
+Daily Logs
+-The buttons will be replaced by quick view summaries (see manager reports) with a button to add log entry
+	
+
+
+Training
+-Future releases of Kitchen Kontrol will have this view customized based on the user and will show assigned, In Progress, and completed trainings
+
+
+Manager Reports
+-each widget will show a quick view summar and a button that take the manager to a 'Detail' modal for that report
+-might rename this section to 'Management Functions' and group by 'Reports' and 'App Management'
+-future release of Kitchen Kontrol will include a widget for inventory
+-future release of Kitchen Kontrol will include widget for planning worksheet
+
+
+
+
+Planograms
+-remove 'Add Well button'
+-future version of Kitchen Kontrol will include the ability to create a pdf that includes all planograms for a date range
+-future version of Kitchen Kontrol will include the ability to have more than one well setup (e.g. breakfast and lunch or setup option 1 and setup option 2)
+-split Pans and Utensils into separate widgets
+-open the section view with the Pans/Utensils widget collapsed so that the Wells are the focus
+-add the shotgun pans and modify the wells to include the ability to add side by side shotgun pans (plastic or metal)
+-Remove 'Duplicate' and 'Remove' buttons from well planners
+-Steamer Well Layout modal
+	*future releases of Kitchen Kontrol will include the ability to email the planagram
+	*The pdf wells are too wide. for example it should only be as wide as the full deep, half shallow, and double shotgun pans (labels and utensil fields will wrap)
+
+
+
+My Tasks
+	*This will show all tasks for the signed in Admin, and for non-admin users it will show all tasks grouped by role/phase etc...
+
+
+
+

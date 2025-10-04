@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
 const { body, validationResult } = require('express-validator');
+const auth = require('../middleware/auth');
 
-router.get("/", (req, res) => {
+router.get("/", auth, (req, res) => {
     db.all("SELECT * FROM absences", [], (err, rows) => {
         if (err) {
             res.status(400).json({ "error": err.message });
@@ -13,7 +14,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", auth, (req, res, next) => {
     db.run(
         `DELETE FROM absences WHERE id = ?`,
         req.params.id,
@@ -21,13 +22,17 @@ router.delete("/:id", (req, res, next) => {
             if (err) {
                 next(err);
             } else {
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Deleted absence with ID: ${req.params.id}`],
+                    (err) => { if (err) next(err); }
+                );
                 res.json({ changes: this.changes });
             }
         }
     );
 });
 
-router.post("/",
+router.post("/", auth,
     body('name').notEmpty(),
     body('date').notEmpty(),
     body('reason').notEmpty(),
@@ -44,13 +49,18 @@ router.post("/",
             if (err) {
                 next(err);
             } else {
-                res.json({ id: this.lastID });
+                const newAbsenceId = this.lastID;
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Created absence for ${name} (ID: ${newAbsenceId})`],
+                    (err) => { if (err) next(err); }
+                );
+                res.json({ id: newAbsenceId });
             }
         }
     );
 });
 
-router.put("/:id",
+router.put("/:id", auth,
     body('approved').isBoolean(),
     body('approvalDate').notEmpty(),
     (req, res, next) => {
@@ -66,6 +76,10 @@ router.put("/:id",
             if (err) {
                 next(err);
             } else {
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Updated absence with ID: ${req.params.id}`],
+                    (err) => { if (err) next(err); }
+                );
                 res.json({ changes: this.changes });
             }
         }

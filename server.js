@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const db = require('./db.js');
@@ -35,8 +34,20 @@ app.use('/api/planograms', planogramsRouter);
 const ingredientsRouter = require('./routes/ingredients');
 app.use('/api/ingredients', ingredientsRouter);
 
+const authRouter = require('./routes/auth');
+app.use('/api/auth', authRouter);
+
+const usersRouter = require('./routes/users');
+app.use('/api/users', usersRouter);
+
 const trainingModulesRouter = require('./routes/training-modules');
 app.use('/api/training-modules', trainingModulesRouter);
+
+const auditLogRouter = require('./routes/audit-log');
+app.use('/api/audit-log', auditLogRouter);
+
+const performanceRouter = require('./routes/performance');
+app.use('/api/performance', performanceRouter);
 
 
 

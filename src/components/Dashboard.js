@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Clock, Users, Calendar, FileText, BookOpen, ClipboardCheck, User, Pencil, Check, BarChart3 } from 'lucide-react';
 import Modal from './Modal';
 import useStore from '../store';
+import { getPhaseColor } from '../utils/getPhaseColor';
 
 const Dashboard = () => {
     const [isEditingPhases, setIsEditingPhases] = useState(false);
@@ -13,7 +13,6 @@ const Dashboard = () => {
         scheduleData, 
         roles, 
         absentees, 
-        getPhaseColor, 
         handleApproveAbsence, 
         editingPhaseData,
         setEditingPhaseData,
@@ -28,6 +27,8 @@ const Dashboard = () => {
         selection,
         setSelection,
         setCurrentView,
+        completedTasks,
+        handleTaskCompletion,
     } = useStore();
 
     if (!scheduleData.phases || Object.keys(roles).length === 0) {
@@ -45,18 +46,18 @@ const Dashboard = () => {
             </h2>
           </div>
           <div className="grid grid-cols-7 gap-2">
-            {Object.entries(scheduleData.phases).map(([phase, data]) => (
-              <div key={phase} className={`p-3 rounded-lg border-2 text-center transition-colors hover:shadow-md ${getPhaseColor(data.status)}`}>
-                <div className="font-semibold text-sm">{data.title}</div>
-                <div className="text-xs mt-1">{data.time}</div>
-                {data.status === 'active' && (
+            {Object.entries(scheduleData.phases).map(([phaseId, phaseData]) => (
+              <div key={phaseId} onClick={() => setSelection({ type: 'phase', id: phaseId })} className={`p-3 rounded-lg border-2 text-center transition-colors hover:shadow-md ${getPhaseColor(phaseData.status)} cursor-pointer`}>
+                <div className="font-semibold text-sm">{phaseData.title}</div>
+                <div className="text-xs mt-1">{phaseData.time}</div>
+                {phaseData.status === 'active' && (
                   <div className="mt-2">
                     <div className="w-full bg-green-200 rounded-full h-2">
                       <div className="bg-green-600 h-2 rounded-full w-3/4"></div>
                     </div>
                   </div>
                 )}
-                <button onClick={() => {setIsEditingPhases(true); setEditingPhaseData(data);}} className="p-1 mt-2 text-gray-500 hover:text-gray-700 rounded"><Pencil size={14} /></button>
+                <button onClick={(e) => { e.stopPropagation(); setIsEditingPhases(true); setEditingPhaseData(phaseData);}} className="p-1 mt-2 text-gray-500 hover:text-gray-700 rounded"><Pencil size={14} /></button>
               </div>
             ))}
           </div>
@@ -210,10 +211,15 @@ const Dashboard = () => {
                 <div key={role} className="border rounded p-3">
                   <h4 className="font-semibold capitalize mb-2">{role.replace('-', ' ')}</h4>
                   <div className="space-y-2">
-                    {taskList.map((task, index) => (
-                      <label key={index} className="flex items-center space-x-2">
-                        <input type="checkbox" className="rounded" />
-                        <span className="text-sm">{task}</span>
+                    {taskList.map((task) => (
+                      <label key={task.id} className="flex items-center space-x-2">
+                        <input 
+                            type="checkbox" 
+                            className="rounded" 
+                            checked={completedTasks[task.id] || false}
+                            onChange={() => handleTaskCompletion(task.id)}
+                        />
+                        <span className="text-sm">{task.name}</span>
                       </label>
                     ))}
                   </div>
@@ -231,10 +237,15 @@ const Dashboard = () => {
         >
           {selection?.type === 'role' && (
             <div className="space-y-3">
-              {(roles?.[selection?.id]?.tasks ?? []).map((task, index) => (
-                <label key={index} className="flex items-center space-x-2">
-                  <input type="checkbox" className="rounded" />
-                  <span>{task}</span>
+              {(roles?.[selection?.id]?.tasks ?? []).map((task) => (
+                <label key={task.id} className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    className="rounded" 
+                    checked={completedTasks[task.id] || false}
+                    onChange={() => handleTaskCompletion(task.id)}
+                    />
+                  <span>{task.name}</span>
                 </label>
               ))}
             </div>
@@ -257,10 +268,15 @@ const Dashboard = () => {
                       <div key={roleKey} className="border rounded p-3">
                         <h4 className="font-semibold mb-2">{roleData?.name ?? ''}</h4>
                         <div className="space-y-2">
-                          {(roleData?.tasks ?? []).map((task, index) => (
-                            <label key={index} className="flex items-center space-x-2">
-                              <input type="checkbox" className="rounded" />
-                              <span className="text-sm">{task}</span>
+                          {(roleData?.tasks ?? []).map((task) => (
+                            <label key={task.id} className="flex items-center space-x-2">
+                              <input 
+                                type="checkbox" 
+                                className="rounded" 
+                                checked={completedTasks[task.id] || false}
+                                onChange={() => handleTaskCompletion(task.id)}
+                                />
+                              <span className="text-sm">{task.name}</span>
                             </label>
                           ))}
                         </div>

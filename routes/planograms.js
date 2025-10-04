@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
 const { body, validationResult } = require('express-validator');
+const auth = require('../middleware/auth');
 
-router.get("/", (req, res, next) => {
+router.get("/", auth, (req, res, next) => {
     db.all("SELECT * FROM planograms", [], (err, rows) => {
         if (err) {
             next(err);
@@ -13,7 +14,7 @@ router.get("/", (req, res, next) => {
     });
 });
 
-router.get("/:date", (req, res, next) => {
+router.get("/:date", auth, (req, res, next) => {
     db.get("SELECT * FROM planograms WHERE date = ?", [req.params.date], (err, row) => {
         if (err) {
             next(err);
@@ -23,7 +24,7 @@ router.get("/:date", (req, res, next) => {
                     if (err) {
                         next(err);
                     } else {
-                        row.wells = wells;
+                        row.wells = wells.map(w => JSON.parse(w.data));
                         res.json({ data: row });
                     }
                 });
@@ -34,7 +35,7 @@ router.get("/:date", (req, res, next) => {
     });
 });
 
-router.post("/",
+router.post("/", auth,
     body('date').notEmpty(),
     body('title').notEmpty(),
     (req, res, next) => {
@@ -42,35 +43,39 @@ router.post("/",
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const { date, title, shotgun, wells } = req.body;
+    const { date, title, notes, compactPDF, wells } = req.body;
     db.run(
-        `INSERT INTO planograms (date, title, shotgun) VALUES (?, ?, ?)`,
-        [date, title, shotgun],
+        `INSERT INTO planograms (date, title, notes, compactPDF) VALUES (?, ?, ?, ?)`,
+        [date, title, notes, compactPDF],
         function (err) {
             if (err) {
                 next(err);
             } else {
                 const planogramId = this.lastID;
-                const wellStmt = db.prepare("INSERT INTO planogram_wells (planogram_id, temp, pan, food, utensil) VALUES (?, ?, ?, ?, ?)");
-                wells.forEach(well => wellStmt.run(planogramId, well.temp, well.pan, well.food, well.utensil));
+                const wellStmt = db.prepare("INSERT INTO planogram_wells (planogram_id, data) VALUES (?, ?)");
+                wells.forEach(well => wellStmt.run(planogramId, JSON.stringify(well)));
                 wellStmt.finalize();
+                db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                    [req.user.id, `Created planogram ${title} (ID: ${planogramId})`],
+                    (err) => { if (err) next(err); }
+                );
                 res.json({ id: planogramId });
             }
         }
     );
 });
 
-router.put("/:id",
+router.put("/:id", auth,
     body('title').notEmpty(),
     (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const { title, shotgun, wells } = req.body;
+    const { title, notes, compactPDF, wells } = req.body;
     db.run(
-        `UPDATE planograms SET title = ?, shotgun = ? WHERE id = ?`,
-        [title, shotgun, req.params.id],
+        `UPDATE planograms SET title = ?, notes = ?, compactPDF = ? WHERE id = ?`,
+        [title, notes, compactPDF, req.params.id],
         function (err) {
             if (err) {
                 next(err);
@@ -79,9 +84,13 @@ router.put("/:id",
                     if (err) {
                         next(err);
                     } else {
-                        const wellStmt = db.prepare("INSERT INTO planogram_wells (planogram_id, temp, pan, food, utensil) VALUES (?, ?, ?, ?, ?)");
-                        wells.forEach(well => wellStmt.run(req.params.id, well.temp, well.pan, well.food, well.utensil));
+                        const wellStmt = db.prepare("INSERT INTO planogram_wells (planogram_id, data) VALUES (?, ?)");
+                        wells.forEach(well => wellStmt.run(req.params.id, JSON.stringify(well)));
                         wellStmt.finalize();
+                        db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
+                            [req.user.id, `Updated planogram ${title} (ID: ${req.params.id})`],
+                            (err) => { if (err) next(err); }
+                        );
                         res.json({ changes: this.changes });
                     }
                 });

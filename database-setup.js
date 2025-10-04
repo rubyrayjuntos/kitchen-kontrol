@@ -11,14 +11,22 @@ const setupDatabase = (db) => {
         // Create roles table
         db.run(`CREATE TABLE IF NOT EXISTS roles (
             id TEXT PRIMARY KEY,
-            name TEXT,
-            assignedUser TEXT
+            name TEXT
+        )`);
+
+        // Create user_roles table
+        db.run(`CREATE TABLE IF NOT EXISTS user_roles (
+            user_id INTEGER,
+            role_id TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (role_id) REFERENCES roles (id)
         )`);
 
         // Create tasks table
         db.run(`CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            task TEXT,
+            name TEXT,
+            description TEXT,
             role_id TEXT,
             phase_id TEXT,
             FOREIGN KEY (role_id) REFERENCES roles (id),
@@ -85,17 +93,15 @@ const setupDatabase = (db) => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date DATE,
             title TEXT,
-            shotgun TEXT
+            notes TEXT,
+            compactPDF BOOLEAN
         )`);
 
         // Create planogram_wells table
         db.run(`CREATE TABLE IF NOT EXISTS planogram_wells (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             planogram_id INTEGER,
-            temp TEXT,
-            pan TEXT,
-            food TEXT,
-            utensil TEXT,
+            data TEXT,
             FOREIGN KEY (planogram_id) REFERENCES planograms (id)
         )`);
 
@@ -107,6 +113,25 @@ const setupDatabase = (db) => {
             unit TEXT,
             category TEXT,
             minStock INTEGER
+        )`);
+
+        // Create users table
+        db.run(`CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            phone TEXT,
+            role TEXT NOT NULL DEFAULT 'user'
+        )`);
+
+        // Create audit_log table
+        db.run(`CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            action TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )`);
 
         console.log("Database tables created or already exist.");
