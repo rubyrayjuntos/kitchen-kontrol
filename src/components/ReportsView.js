@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import UsersWidget from './UsersWidget';
 import RolesWidget from './RolesWidget';
 import TasksWidget from './TasksWidget';
+import UserTasks from './UserTasks';
+import RolePhaseWidget from './RolePhaseWidget';
 import useStore from '../store';
 
 const ReportsView = () => {
@@ -41,7 +43,9 @@ const ReportsView = () => {
       { id: 'staff-performance', name: 'Staff Performance', description: 'Individual staff task completion tracking' },
       { id: 'user-management', name: 'User Management', description: 'Add, edit, and delete users' },
       { id: 'roles-management', name: 'Roles Management', description: 'Add, edit, and delete roles' },
-      { id: 'tasks-management', name: 'Tasks Management', description: 'Add, edit, and delete tasks' }
+      { id: 'tasks-management', name: 'Tasks Management', description: 'Add, edit, and delete tasks' },
+      { id: 'user-tasks', name: 'User Tasks', description: 'View tasks assigned to users' },
+      { id: 'role-phases', name: 'Role Phases', description: 'Assign roles to phases' }
     ];
 
     const renderReportContent = () => {
@@ -270,6 +274,12 @@ const ReportsView = () => {
 
         case 'tasks-management':
             return <TasksWidget />;
+
+        case 'user-tasks':
+            return <UserTasks />;
+
+        case 'role-phases':
+            return <RolePhaseWidget />;
 
         default:
           return <div>Report content not available</div>;

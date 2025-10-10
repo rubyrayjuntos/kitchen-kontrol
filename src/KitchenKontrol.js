@@ -41,15 +41,15 @@ const KitchenKontrol = () => {
       case 'logs':
         return <LogsView />;
       case 'reports':
-        return <ReportsView />;
+        return user.permissions === 'admin' ? <ReportsView /> : <Dashboard />;
       case 'training':
         return <TrainingView />;
       case 'planograms':
         return <PlanogramView />;
       case 'users':
-        return <UserManagement />;
+        return user.permissions === 'admin' ? <UserManagement /> : <Dashboard />;
       case 'my-tasks':
-        return <MyTasks />;
+        return user.permissions === 'user' ? <MyTasks /> : <Dashboard />;
       default:
         return <Dashboard />;
     }

@@ -1,0 +1,267 @@
+/* ==============================================
+   ChiaroscuroCSS - Neumorphic Components
+   ============================================== */
+
+/* === Base Neumorphic === */
+.neumorphic-base {
+  position: relative;
+  background-color: var(--bg-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+}
+
+/* === Raised Effect === */
+.neumorphic-raised {
+  position: relative;
+  background-color: var(--bg-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  box-shadow: 
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+  padding: var(--spacing-4);
+}
+
+.neumorphic-raised:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    -8px -8px 16px var(--shadow-light),
+    8px 8px 16px var(--shadow-dark);
+}
+
+/* === Inset Effect === */
+.neumorphic-inset {
+  position: relative;
+  background-color: var(--bg-primary);
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark);
+  padding: var(--spacing-4);
+}
+
+/* === Beveled Effect === */
+.neumorphic-beveled {
+  position: relative;
+  background-color: var(--bg-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  box-shadow: 
+    inset 2px 2px 5px var(--shadow-dark),
+    inset -2px -2px 5px var(--shadow-light),
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+  padding: var(--spacing-4);
+}
+
+/* === Flat Effect === */
+.neumorphic-flat {
+  position: relative;
+  background-color: var(--bg-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  box-shadow: 
+    -2px -2px 4px var(--shadow-light),
+    2px 2px 4px var(--shadow-dark);
+  padding: var(--spacing-4);
+}
+
+/* === Pressed Effect === */
+.neumorphic-pressed {
+  position: relative;
+  background-color: var(--bg-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+  border-radius: var(--radius-md);
+  box-shadow: 
+    inset -6px -6px 12px var(--shadow-light),
+    inset 6px 6px 12px var(--shadow-dark);
+  padding: var(--spacing-4);
+  transform: scale(0.98);
+}
+
+/* === Size Variants === */
+.neumorphic-sm {
+  padding: var(--spacing-2);
+  border-radius: var(--radius-sm);
+}
+
+.neumorphic-sm.neumorphic-raised,
+.neumorphic-sm.neumorphic-flat {
+  box-shadow: 
+    -3px -3px 6px var(--shadow-light),
+    3px 3px 6px var(--shadow-dark);
+}
+
+.neumorphic-sm.neumorphic-inset,
+.neumorphic-sm.neumorphic-pressed {
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark);
+}
+
+.neumorphic-lg {
+  padding: var(--spacing-8);
+  border-radius: var(--radius-lg);
+}
+
+.neumorphic-lg.neumorphic-raised {
+  box-shadow: 
+    -12px -12px 24px var(--shadow-light),
+    12px 12px 24px var(--shadow-dark);
+}
+
+.neumorphic-lg.neumorphic-inset,
+.neumorphic-lg.neumorphic-pressed {
+  box-shadow: 
+    inset -8px -8px 16px var(--shadow-light),
+    inset 8px 8px 16px var(--shadow-dark);
+}
+
+.neumorphic-xl {
+  padding: var(--spacing-12);
+  border-radius: var(--radius-xl);
+}
+
+.neumorphic-xl.neumorphic-raised {
+  box-shadow: 
+    -16px -16px 32px var(--shadow-light),
+    16px 16px 32px var(--shadow-dark);
+}
+
+.neumorphic-xl.neumorphic-inset,
+.neumorphic-xl.neumorphic-pressed {
+  box-shadow: 
+    inset -12px -12px 24px var(--shadow-light),
+    inset 12px 12px 24px var(--shadow-dark);
+}
+
+/* === Interactive States === */
+.neumorphic-interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.neumorphic-interactive:hover {
+  transform: translateY(-1px);
+}
+
+.neumorphic-interactive:active {
+  transform: scale(0.98);
+  transition: transform var(--transition-fast);
+}
+
+.neumorphic-interactive:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* === Special Effects === */
+.neumorphic-glow {
+  box-shadow: 
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark),
+    0 0 24px var(--shadow-accent);
+}
+
+.neumorphic-intense {
+  --shadow-light: rgba(255, 255, 255, 0.9);
+  --shadow-dark: rgba(0, 0, 0, 0.9);
+}
+
+.neumorphic-subtle {
+  --shadow-light: rgba(255, 255, 255, 0.1);
+  --shadow-dark: rgba(0, 0, 0, 0.1);
+}
+
+/* === Color Variants === */
+.neumorphic-primary {
+  background-color: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+.neumorphic-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.neumorphic-success {
+  background-color: var(--accent-success);
+  color: var(--bg-primary);
+}
+
+.neumorphic-warning {
+  background-color: var(--accent-warning);
+  color: var(--bg-primary);
+}
+
+.neumorphic-error {
+  background-color: var(--accent-error);
+  color: var(--bg-primary);
+}
+
+/* === Text Effects === */
+.text-engraved {
+  color: var(--text-secondary);
+  text-shadow: 
+    1px 1px 1px var(--shadow-dark),
+    -1px -1px 1px var(--shadow-light);
+}
+
+.text-embossed {
+  color: var(--text-primary);
+  text-shadow: 
+    -1px -1px 1px var(--shadow-dark),
+    1px 1px 1px var(--shadow-light);
+}
+
+.text-glow {
+  color: var(--accent-primary);
+  text-shadow: 0 0 12px var(--shadow-accent);
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 768px) {
+  .neumorphic-raised,
+  .neumorphic-inset,
+  .neumorphic-beveled,
+  .neumorphic-flat {
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-3);
+  }
+
+  .neumorphic-raised {
+    box-shadow: 
+      -4px -4px 8px var(--shadow-light),
+      4px 4px 8px var(--shadow-dark);
+  }
+
+  .neumorphic-raised:hover {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 
+      -6px -6px 12px var(--shadow-light),
+      6px 6px 12px var(--shadow-dark);
+  }
+}
+
+/* === Accessibility === */
+@media (prefers-reduced-motion: reduce) {
+  .neumorphic-raised:hover,
+  .neumorphic-interactive:hover,
+  .neumorphic-interactive:active {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .neumorphic-raised,
+  .neumorphic-inset,
+  .neumorphic-beveled,
+  .neumorphic-flat {
+    border: 2px solid var(--text-primary);
+  }
+}

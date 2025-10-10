@@ -1,0 +1,101 @@
+/* ==============================================
+   ChiaroscuroCSS - Mystical Theme
+   ============================================== */
+
+[data-theme="mystical"] {
+  /* === Primary Colors === */
+  --bg-primary: #2d1b69;
+  --bg-secondary: #241456;
+  --bg-tertiary: #1a103f;
+  --bg-elevated: #3d2575;
+  
+  /* === Text Colors === */
+  --text-primary: #e8e0ff;
+  --text-secondary: #b8a9d9;
+  --text-tertiary: #9c88c4;
+  --text-disabled: #7a6ba0;
+  
+  /* === Accent Colors === */
+  --accent-primary: #9c27b0;
+  --accent-secondary: #e1bee7;
+  --accent-tertiary: #8e24aa;
+  --accent-success: #00e676;
+  --accent-warning: #ff9800;
+  --accent-error: #f44336;
+  --accent-info: #03dac6;
+  
+  /* === Borders === */
+  --border-primary: #6a4c93;
+  --border-secondary: #553c7b;
+  --border-accent: var(--accent-primary);
+  
+  /* === Shadows === */
+  --shadow-light: rgba(156, 39, 176, 0.4);
+  --shadow-dark: rgba(26, 16, 63, 0.8);
+  --shadow-accent: rgba(156, 39, 176, 0.5);
+  
+  /* === Theme-specific Properties === */
+  --theme-glow: 0 0 12px rgba(156, 39, 176, 0.6);
+  --theme-glow-intense: 0 0 24px rgba(156, 39, 176, 0.8);
+  --theme-gradient-start: #9c27b0;
+  --theme-gradient-end: #e1bee7;
+}
+
+/* === Mystical Theme Enhancements === */
+[data-theme="mystical"] .neumorphic-accent {
+  box-shadow: 
+    var(--theme-glow),
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+}
+
+[data-theme="mystical"] .btn:focus {
+  box-shadow: 
+    0 0 0 var(--focus-ring-offset) var(--bg-primary),
+    0 0 0 calc(var(--focus-ring-offset) + var(--focus-ring-width)) var(--accent-primary),
+    var(--theme-glow);
+}
+
+[data-theme="mystical"] .theme-gradient {
+  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
+}
+
+[data-theme="mystical"] .text-theme {
+  color: var(--accent-primary);
+}
+
+[data-theme="mystical"] .border-theme {
+  border-color: var(--accent-primary);
+}
+
+[data-theme="mystical"] .bg-theme {
+  background-color: var(--accent-primary);
+}
+
+/* === Special Mystical Effects === */
+[data-theme="mystical"] .mystical-glow {
+  position: relative;
+}
+
+[data-theme="mystical"] .mystical-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(from 0deg, var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.7;
+  filter: blur(8px);
+  animation: mystical-pulse 3s ease-in-out infinite;
+}
+
+@keyframes mystical-pulse {
+  0%, 100% { 
+    opacity: 0.7; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.05);
+  }
+}

@@ -8,15 +8,22 @@ const Dashboard = () => {
     const [isEditingPhases, setIsEditingPhases] = useState(false);
     const [isEditingRoles, setIsEditingRoles] = useState(false);
     const [isEditingAbsences, setIsEditingAbsences] = useState(false);
+    const [isAddingPhase, setIsAddingPhase] = useState(false);
+    const [newPhaseTitle, setNewPhaseTitle] = useState('');
+    const [newPhaseTime, setNewPhaseTime] = useState('');
 
     const {
         scheduleData, 
         roles, 
+        users,
+        userRoles,
         absentees, 
         handleApproveAbsence, 
         editingPhaseData,
         setEditingPhaseData,
         handleSavePhase,
+        addPhase,
+        deletePhase,
         editingRoleData,
         setEditingRoleData,
         handleSaveRole,
@@ -31,9 +38,16 @@ const Dashboard = () => {
         handleTaskCompletion,
     } = useStore();
 
-    if (!scheduleData.phases || Object.keys(roles).length === 0) {
+    if (!scheduleData.phases || roles.length === 0) {
         return <div>Loading...</div>; // Or some other placeholder
     }
+
+    const handleAddPhase = () => {
+        addPhase({ title: newPhaseTitle, time: newPhaseTime });
+        setNewPhaseTitle('');
+        setNewPhaseTime('');
+        setIsAddingPhase(false);
+    };
 
     return (
         <div className="p-6 space-y-6">
@@ -44,6 +58,9 @@ const Dashboard = () => {
               <Clock className="mr-2" />
               Daily Kitchen Phases
             </h2>
+            <button onClick={() => setIsAddingPhase(true)} className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                <Pencil size={18} />
+            </button>
           </div>
           <div className="grid grid-cols-7 gap-2">
             {Object.entries(scheduleData.phases).map(([phaseId, phaseData]) => (
@@ -73,28 +90,34 @@ const Dashboard = () => {
               </h2>
             </div>
             <div className="space-y-3">
-              {Object.entries(roles ?? {}).map(([roleKey, roleData]) => {
-                if (!roleData) return null; // skip bad entries safely
-                const roleName = roleData?.name ?? '(Unnamed role)';
-                const assignedUser = roleData?.assignedUser ?? '';
+              {Object.values(scheduleData.phases).map((phase) => (
+                <div key={phase.id}>
+                  <h3 className="font-bold text-lg mb-2">{phase.title}</h3>
+                  {phase.roles.map((role) => {
+                    if (!role) return null; // skip bad entries safely
+                    const roleName = role?.name ?? '(Unnamed role)';
+                    const userRole = userRoles.find(ur => ur.role_id === role.id);
+                    const assignedUser = users.find(u => u.id === userRole?.user_id);
 
-                return (
-                  <div key={roleKey} className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-                    <button onClick={() => setSelection({ type: 'role', id: roleKey })} className="font-medium text-left hover:text-blue-600">
-                      {roleName}
-                    </button>
-                    <div className="flex items-center space-x-2">
-                      <button onClick={() => assignedUser && setSelection({ type: 'user', id: assignedUser })} className="flex items-center space-x-2 hover:text-blue-600" disabled={!assignedUser}>
-                        <User size={16} />
-                        <span>{assignedUser}</span>
-                      </button>
-                      <button onClick={() => {setIsEditingRoles(true); setEditingRoleData(roleData);}} className="p-1 text-gray-500 hover:text-gray-700 rounded">
-                        <Pencil size={14} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                    return (
+                      <div key={role.id} className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                        <button onClick={() => setSelection({ type: 'role', id: role.id })} className="font-medium text-left hover:text-blue-600">
+                          {roleName}
+                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => assignedUser && setSelection({ type: 'user', id: assignedUser.id })} className="flex items-center space-x-2 hover:text-blue-600" disabled={!assignedUser}>
+                            <User size={16} />
+                            <span>{assignedUser?.name}</span>
+                          </button>
+                          <button onClick={() => {setIsEditingRoles(true); setEditingRoleData(role);}} className="p-1 text-gray-500 hover:text-gray-700 rounded">
+                            <Pencil size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
   
@@ -116,8 +139,9 @@ const Dashboard = () => {
               <div className="space-y-3">
                 {(absentees ?? []).map((absence) => {
                   if (!absence) return null;
-                  const name = absence.name ?? '(Unknown)';
-                  const date = absence.date ?? '—';
+                  const name = absence.user_name ?? '(Unknown)';
+                  const startDate = absence.start_date ?? '—';
+                  const endDate = absence.end_date ?? '—';
 
                   return (
                     <div 
@@ -138,7 +162,7 @@ const Dashboard = () => {
                         )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className="text-sm font-medium">{date}</div>
+                        <div className="text-sm font-medium">{startDate} - {endDate}</div>
                         {!absence.approved && (
                           <button
                             onClick={() => handleApproveAbsence(absence.id)}
@@ -207,11 +231,11 @@ const Dashboard = () => {
         >
           {selection?.type === 'phase' && (
             <div className="space-y-4">
-              {Object.entries(scheduleData.phases[selection?.id]?.tasks || {}).map(([role, taskList]) => (
-                <div key={role} className="border rounded p-3">
-                  <h4 className="font-semibold capitalize mb-2">{role.replace('-', ' ')}</h4>
+              {scheduleData.phases[selection?.id]?.roles.map((role) => (
+                <div key={role.id} className="border rounded p-3">
+                  <h4 className="font-semibold capitalize mb-2">{role.name}</h4>
                   <div className="space-y-2">
-                    {taskList.map((task) => (
+                    {role.tasks.map((task) => (
                       <label key={task.id} className="flex items-center space-x-2">
                         <input 
                             type="checkbox" 
@@ -233,11 +257,11 @@ const Dashboard = () => {
         <Modal
           isOpen={selection?.type === 'role'}
           onClose={() => setSelection(null)}
-          title={selection?.id ? `${roles?.[selection?.id]?.name ?? '(Unnamed role)'} Tasks` : ''}
+          title={selection?.id ? `${roles.find(r => r.id === selection.id)?.name ?? '(Unnamed role)'} Tasks` : ''}
         >
           {selection?.type === 'role' && (
             <div className="space-y-3">
-              {(roles?.[selection?.id]?.tasks ?? []).map((task) => (
+              {(roles.find(r => r.id === selection.id)?.tasks ?? []).map((task) => (
                 <label key={task.id} className="flex items-center space-x-2">
                   <input 
                     type="checkbox" 
@@ -256,19 +280,20 @@ const Dashboard = () => {
         <Modal
           isOpen={selection?.type === 'user'}
           onClose={() => setSelection(null)}
-          title={selection?.id ? `${selection?.id} - All Daily Tasks` : ''}
+          title={selection?.id ? `${users.find(u => u.id === selection.id)?.name} - All Daily Tasks` : ''}
         >
-          {selection?.type === 'user' && Object.keys(roles ?? {}).length > 0 && (
+          {selection?.type === 'user' && roles.length > 0 && (
             <div className="space-y-4">
-              {Object.entries(roles ?? {})
-                .filter(([_, roleData]) => roleData?.assignedUser === selection?.id)
-                .map(([roleKey, roleData]) => {
+              {userRoles
+                .filter((ur) => ur.user_id === selection?.id)
+                .map((ur) => {
+                  const role = roles.find(r => r.id === ur.role_id);
                   try {
                     return (
-                      <div key={roleKey} className="border rounded p-3">
-                        <h4 className="font-semibold mb-2">{roleData?.name ?? ''}</h4>
+                      <div key={role.id} className="border rounded p-3">
+                        <h4 className="font-semibold mb-2">{role?.name ?? ''}</h4>
                         <div className="space-y-2">
-                          {(roleData?.tasks ?? []).map((task) => (
+                          {(role?.tasks ?? []).map((task) => (
                             <label key={task.id} className="flex items-center space-x-2">
                               <input 
                                 type="checkbox" 
@@ -305,6 +330,16 @@ const Dashboard = () => {
               )}
           </div>
         </Modal>
+
+        <Modal isOpen={isAddingPhase} onClose={() => setIsAddingPhase(false)} title="Add Daily Kitchen Phase">
+            <div className="space-y-4">
+                <div>
+                    <input type="text" placeholder="Title" value={newPhaseTitle} onChange={(e) => setNewPhaseTitle(e.target.value)} className="border rounded p-2 w-full" />
+                    <input type="text" placeholder="Time" value={newPhaseTime} onChange={(e) => setNewPhaseTime(e.target.value)} className="border rounded p-2 w-full mt-2" />
+                    <button onClick={handleAddPhase} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mt-2">Add Phase</button>
+                </div>
+            </div>
+        </Modal>
   
         <Modal isOpen={isEditingRoles} onClose={() => {setIsEditingRoles(false); setEditingRoleData(null);}} title="Edit Daily Role Assignment">
           <div className="space-y-4">
@@ -312,7 +347,6 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between p-3 border rounded">
                       <div>
                           <input type="text" value={editingRoleData.name} onChange={(e) => setEditingRoleData({...editingRoleData, name: e.target.value})} className="border rounded p-2" />
-                          <input type="text" value={editingRoleData.assignedUser} onChange={(e) => setEditingRoleData({...editingRoleData, assignedUser: e.target.value})} className="border rounded p-2 ml-2" />
                       </div>
                       <button onClick={handleSaveRole} className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">Save</button>
                   </div>
@@ -323,8 +357,14 @@ const Dashboard = () => {
         <Modal isOpen={isEditingAbsences} onClose={() => setIsEditingAbsences(false)} title="Manage Absences">
           <div className="space-y-4">
               <div>
-                  <input type="text" placeholder="Name" value={newAbsenceData.name} onChange={(e) => setNewAbsenceData({...newAbsenceData, name: e.target.value})} className="border rounded p-2 w-full" />
-                  <input type="date" value={newAbsenceData.date} onChange={(e) => setNewAbsenceData({...newAbsenceData, date: e.target.value})} className="border rounded p-2 w-full mt-2" />
+                  <select className="border rounded p-2 w-full" value={newAbsenceData.user_id} onChange={(e) => setNewAbsenceData({...newAbsenceData, user_id: e.target.value})}>
+                      <option value="">Select User</option>
+                      {users.map(user => (
+                          <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                  </select>
+                  <input type="date" value={newAbsenceData.start_date} onChange={(e) => setNewAbsenceData({...newAbsenceData, start_date: e.target.value})} className="border rounded p-2 w-full mt-2" />
+                  <input type="date" value={newAbsenceData.end_date} onChange={(e) => setNewAbsenceData({...newAbsenceData, end_date: e.target.value})} className="border rounded p-2 w-full mt-2" />
                   <input type="text" placeholder="Reason" value={newAbsenceData.reason} onChange={(e) => setNewAbsenceData({...newAbsenceData, reason: e.target.value})} className="border rounded p-2 w-full mt-2" />
                   <button onClick={handleAddNewAbsence} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mt-2">Add Absence</button>
               </div>
@@ -332,7 +372,7 @@ const Dashboard = () => {
               <h4 className="font-semibold">Current Absences</h4>
               {(absentees ?? []).map((absence) => (
                   <div key={absence.id} className="flex items-center justify-between p-3 border rounded">
-                      <div>{absence.name} - {absence.date}</div>
+                      <div>{absence.user_name} - {absence.start_date} to {absence.end_date}</div>
                       <button onClick={() => handleDeleteAbsence(absence.id)} className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">Delete</button>
                   </div>
               ))}

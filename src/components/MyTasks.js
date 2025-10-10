@@ -2,18 +2,11 @@ import React, { useEffect } from 'react';
 import useStore from '../store';
 
 const MyTasks = () => {
-    const { user, completedTasks, handleTaskCompletion, makeApiCall } = useStore();
-    const [tasks, setTasks] = React.useState([]);
+    const { user, tasks, fetchTasks, completedTasks, handleTaskCompletion } = useStore();
 
     useEffect(() => {
-        const fetchTasks = async () => {
-            if (user) {
-                const data = await makeApiCall(`/api/users/${user.id}/tasks`, 'GET');
-                setTasks(data.data);
-            }
-        };
         fetchTasks();
-    }, [user, makeApiCall]);
+    }, [fetchTasks]);
 
     return (
         <div className="p-6">
@@ -25,7 +18,7 @@ const MyTasks = () => {
                             <input
                                 type="checkbox"
                                 className="rounded"
-                                checked={completedTasks[task.id] || task.status === 'completed'}
+                                checked={completedTasks[task.id] || false}
                                 onChange={() => handleTaskCompletion(task.id)}
                             />
                             <span className="text-sm">{task.name}</span>

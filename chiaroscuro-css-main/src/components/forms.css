@@ -1,0 +1,490 @@
+/* ==============================================
+   ChiaroscuroCSS - Form Components
+   ============================================== */
+
+/* === Base Form Elements === */
+.form-field {
+  margin-bottom: var(--spacing-4);
+}
+
+.form-label {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-2);
+  font-size: var(--font-size-sm);
+}
+
+.form-label.required::after {
+  content: '*';
+  color: var(--accent-error);
+  margin-left: var(--spacing-1);
+}
+
+.form-help {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin-top: var(--spacing-1);
+}
+
+.form-error {
+  font-size: var(--font-size-xs);
+  color: var(--accent-error);
+  margin-top: var(--spacing-1);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+/* === Neumorphic Input === */
+.neumorphic-input {
+  width: 100%;
+  background-color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-3) var(--spacing-4);
+  height: var(--input-height-md);
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  outline: none;
+}
+
+.neumorphic-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.neumorphic-input:focus {
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.neumorphic-input:invalid {
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark),
+    0 0 0 1px var(--accent-error);
+}
+
+.neumorphic-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--bg-secondary);
+}
+
+/* === Input Sizes === */
+.neumorphic-input.input-sm {
+  height: var(--input-height-sm);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark);
+}
+
+.neumorphic-input.input-lg {
+  height: var(--input-height-lg);
+  padding: var(--spacing-4) var(--spacing-6);
+  font-size: var(--font-size-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: 
+    inset -6px -6px 12px var(--shadow-light),
+    inset 6px 6px 12px var(--shadow-dark);
+}
+
+/* === Textarea === */
+.neumorphic-textarea {
+  width: 100%;
+  background-color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-4);
+  min-height: 120px;
+  resize: vertical;
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  outline: none;
+}
+
+.neumorphic-textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.neumorphic-textarea:focus {
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+/* === Select === */
+.neumorphic-select {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.neumorphic-select select {
+  width: 100%;
+  background-color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-3) var(--spacing-10) var(--spacing-3) var(--spacing-4);
+  height: var(--input-height-md);
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.neumorphic-select::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-4);
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--text-secondary);
+  pointer-events: none;
+}
+
+.neumorphic-select select:focus {
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+/* === Checkbox === */
+.neumorphic-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.neumorphic-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.neumorphic-checkbox .checkbox-box {
+  width: 20px;
+  height: 20px;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.neumorphic-checkbox input[type="checkbox"]:checked + .checkbox-box {
+  background-color: var(--accent-primary);
+  box-shadow: 
+    -2px -2px 4px var(--shadow-light),
+    2px 2px 4px var(--shadow-dark);
+}
+
+.neumorphic-checkbox input[type="checkbox"]:checked + .checkbox-box::after {
+  content: '✓';
+  color: var(--bg-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.neumorphic-checkbox input[type="checkbox"]:focus + .checkbox-box {
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.neumorphic-checkbox .checkbox-label {
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+}
+
+/* === Radio Button === */
+.neumorphic-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.neumorphic-radio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.neumorphic-radio .radio-circle {
+  width: 20px;
+  height: 20px;
+  background-color: var(--bg-primary);
+  border-radius: 50%;
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.neumorphic-radio input[type="radio"]:checked + .radio-circle::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-primary);
+  border-radius: 50%;
+  box-shadow: 
+    -1px -1px 2px var(--shadow-light),
+    1px 1px 2px var(--shadow-dark);
+}
+
+.neumorphic-radio input[type="radio"]:focus + .radio-circle {
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.neumorphic-radio .radio-label {
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+}
+
+/* === Switch/Toggle === */
+.neumorphic-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  user-select: none;
+}
+
+.neumorphic-switch input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.neumorphic-switch .switch-track {
+  width: 44px;
+  height: 24px;
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-full);
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.neumorphic-switch .switch-thumb {
+  width: 18px;
+  height: 18px;
+  background-color: var(--bg-secondary);
+  border-radius: 50%;
+  box-shadow: 
+    -2px -2px 4px var(--shadow-light),
+    2px 2px 4px var(--shadow-dark);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: all var(--transition-normal);
+}
+
+.neumorphic-switch input[type="checkbox"]:checked + .switch-track {
+  background-color: var(--accent-primary);
+}
+
+.neumorphic-switch input[type="checkbox"]:checked + .switch-track .switch-thumb {
+  transform: translateX(20px);
+  background-color: var(--bg-primary);
+}
+
+.neumorphic-switch input[type="checkbox"]:focus + .switch-track {
+  box-shadow: 
+    inset -2px -2px 4px var(--shadow-light),
+    inset 2px 2px 4px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.neumorphic-switch .switch-label {
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+}
+
+/* === Input Group === */
+.input-group {
+  display: flex;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark);
+}
+
+.input-group .neumorphic-input {
+  border-radius: 0;
+  box-shadow: none;
+  border-right: 1px solid var(--border-secondary);
+}
+
+.input-group .neumorphic-input:last-child {
+  border-right: none;
+}
+
+.input-group .input-addon {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-3);
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  border-right: 1px solid var(--border-secondary);
+}
+
+.input-group .input-addon:last-child {
+  border-right: none;
+  border-left: 1px solid var(--border-secondary);
+}
+
+/* === File Input === */
+.neumorphic-file {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.neumorphic-file input[type="file"] {
+  position: absolute;
+  left: -9999px;
+}
+
+.neumorphic-file .file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-6);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  box-shadow: 
+    -4px -4px 8px var(--shadow-light),
+    4px 4px 8px var(--shadow-dark);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.neumorphic-file:hover .file-label {
+  transform: translateY(-1px);
+  box-shadow: 
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+}
+
+.neumorphic-file input[type="file"]:focus + .file-label {
+  box-shadow: 
+    -4px -4px 8px var(--shadow-light),
+    4px 4px 8px var(--shadow-dark),
+    0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+/* === Form Validation States === */
+.form-field.has-error .neumorphic-input,
+.form-field.has-error .neumorphic-textarea,
+.form-field.has-error .neumorphic-select select {
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark),
+    0 0 0 1px var(--accent-error);
+}
+
+.form-field.has-success .neumorphic-input,
+.form-field.has-success .neumorphic-textarea,
+.form-field.has-success .neumorphic-select select {
+  box-shadow: 
+    inset -4px -4px 8px var(--shadow-light),
+    inset 4px 4px 8px var(--shadow-dark),
+    0 0 0 1px var(--accent-success);
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .neumorphic-input,
+  .neumorphic-textarea,
+  .neumorphic-select select {
+    font-size: var(--font-size-base);
+    padding: var(--spacing-3);
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-group .neumorphic-input {
+    border-right: none;
+    border-bottom: 1px solid var(--border-secondary);
+  }
+
+  .input-group .neumorphic-input:last-child {
+    border-bottom: none;
+  }
+}
+
+/* === Accessibility === */
+@media (prefers-contrast: high) {
+  .neumorphic-input,
+  .neumorphic-textarea,
+  .neumorphic-select select {
+    border: 1px solid var(--text-primary);
+  }
+
+  .neumorphic-checkbox .checkbox-box,
+  .neumorphic-radio .radio-circle,
+  .neumorphic-switch .switch-track {
+    border: 1px solid var(--text-primary);
+  }
+}

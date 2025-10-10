@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChiaroscuroCSS Demo</title>
+  <link rel="stylesheet" href="neumorphic.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 2rem;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+    }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 800px;
+    }
+  </style>
+</head>
+<body data-theme="mystical">
+  <header>
+    <h1>🌒 ChiaroscuroCSS Demo</h1>
+    <p>A lightweight, accessible neumorphic CSS micro-library.<br>
+    <a href="https://github.com/rubyrayjuntos/chiaroscuro-css" target="_blank">View on GitHub</a></p>
+  </header>
+
+  <div class="demo-grid">
+    <div class="neumorphic-raised">Raised Card</div>
+    <div class="neumorphic-inset">Inset Card</div>
+    <button class="btn btn-circular">+</button>
+    <button class="btn btn-pill">Pill Button</button>
+    <input class="neumorphic-input" type="text" placeholder="Input field">
+  </div>
+</body>
+</html>

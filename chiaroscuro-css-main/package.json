@@ -1,0 +1,73 @@
+{
+  "name": "chiaroscuro-css",
+  "version": "2.0.0",
+  "description": "ChiaroscuroCSS v2.0 – A comprehensive neumorphic design system with accessibility-first approach, responsive design, personality-driven theming, and extensive component library. Light, shadow, and balance, redefined for the web.",
+  "main": "src/chiaroscuro.css",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rubyrayjuntos/chiaroscuro-css.git"
+  },
+  "keywords": [
+    "css",
+    "neumorphism",
+    "design-system",
+    "accessibility",
+    "responsive",
+    "wcag",
+    "component-library",
+    "utility-first",
+    "theming",
+    "lightweight",
+    "micro-library",
+    "css-framework",
+    "ui-components",
+    "neumorphic-design",
+    "soft-ui",
+    "modern-css",
+    "css-variables",
+    "mobile-first"
+  ],
+  "author": "Ray Swan <RayCSwan@yahoo.com> (https://rswan.org)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rubyrayjuntos/chiaroscuro-css/issues"
+  },
+  "homepage": "https://github.com/rubyrayjuntos/chiaroscuro-css#readme",
+  "scripts": {
+    "start": "echo \"ChiaroscuroCSS v2.0 - Pure CSS, no build step required\"",
+    "test": "echo \"No test suite specified\"",
+    "demo": "open docs/showcase.html",
+    "lint": "echo \"CSS linting would go here\"",
+    "format": "echo \"CSS formatting would go here\""
+  },
+  "files": [
+    "src/",
+    "docs/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "devDependencies": {},
+  "peerDependencies": {},
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/rubyrayjuntos"
+  },
+  "exports": {
+    ".": "./src/chiaroscuro.css",
+    "./core": "./src/core/",
+    "./components": "./src/components/",
+    "./themes": "./src/themes/",
+    "./utilities": "./src/utilities/"
+  }
+}
+  

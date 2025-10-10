@@ -5,13 +5,27 @@ const { body, validationResult } = require('express-validator');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res) => {
-    db.all("SELECT * FROM tasks", [], (err, rows) => {
-        if (err) {
-            res.status(400).json({ "error": err.message });
-            return;
+    try {
+        if (req.user.permissions === 'admin') {
+            db.all("SELECT * FROM tasks", [], (err, rows) => {
+                if (err) {
+                    res.status(400).json({ "error": err.message });
+                    return;
+                }
+                res.json({ data: rows });
+            });
+        } else {
+            db.all("SELECT t.* FROM tasks t JOIN user_roles ur ON t.role_id = ur.role_id WHERE ur.user_id = ?", [req.user.id], (err, rows) => {
+                if (err) {
+                    res.status(400).json({ "error": err.message });
+                    return;
+                }
+                res.json({ data: rows });
+            });
         }
-        res.json({ data: rows });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 router.post("/", auth,
@@ -21,10 +35,10 @@ router.post("/", auth,
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const { name, description, role_id, phase_id } = req.body;
+    const { name, description, role_id } = req.body;
     db.run(
-        `INSERT INTO tasks (name, description, role_id, phase_id) VALUES (?, ?, ?, ?)`,
-        [name, description, role_id, phase_id],
+        `INSERT INTO tasks (name, description, role_id) VALUES (?, ?, ?)`,
+        [name, description, role_id],
         function (err) {
             if (err) {
                 next(err);
@@ -47,10 +61,10 @@ router.put("/:id", auth,
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const { name, description, role_id, phase_id } = req.body;
+    const { name, description, role_id } = req.body;
     db.run(
-        `UPDATE tasks SET name = ?, description = ?, role_id = ?, phase_id = ? WHERE id = ?`,
-        [name, description, role_id, phase_id, req.params.id],
+        `UPDATE tasks SET name = ?, description = ?, role_id = ? WHERE id = ?`,
+        [name, description, role_id, req.params.id],
         function (err) {
             if (err) {
                 next(err);

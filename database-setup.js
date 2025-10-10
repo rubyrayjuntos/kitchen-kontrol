@@ -22,25 +22,33 @@ const setupDatabase = (db) => {
             FOREIGN KEY (role_id) REFERENCES roles (id)
         )`);
 
-        // Create tasks table
-        db.run(`CREATE TABLE IF NOT EXISTS tasks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            description TEXT,
+        // Create role_phases table
+        db.run(`CREATE TABLE IF NOT EXISTS role_phases (
             role_id TEXT,
             phase_id TEXT,
             FOREIGN KEY (role_id) REFERENCES roles (id),
             FOREIGN KEY (phase_id) REFERENCES phases (id)
         )`);
 
+        // Create tasks table
+        db.run(`CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            description TEXT,
+            role_id TEXT,
+            FOREIGN KEY (role_id) REFERENCES roles (id)
+        )`);
+
         // Create absences table
         db.run(`CREATE TABLE IF NOT EXISTS absences (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            date DATE,
+            user_id INTEGER,
+            start_date DATE,
+            end_date DATE,
             reason TEXT,
             approved BOOLEAN,
-            approvalDate DATE
+            approvalDate DATE,
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )`);
 
         // Create training_modules table
@@ -122,7 +130,7 @@ const setupDatabase = (db) => {
             email TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL,
             phone TEXT,
-            role TEXT NOT NULL DEFAULT 'user'
+            permissions TEXT NOT NULL DEFAULT 'user'
         )`);
 
         // Create audit_log table

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChiaroscuroCSS v2.0 - Comprehensive Showcase</title>
+  <link rel="stylesheet" href="../src/chiaroscuro.css">
+  <style>
+    body {
+      min-height: 100vh;
+      padding: var(--spacing-6);
+      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+    }
+    
+    .showcase-section {
+      margin-bottom: var(--spacing-12);
+    }
+    
+    .theme-switcher {
+      position: fixed;
+      top: var(--spacing-4);
+      right: var(--spacing-4);
+      z-index: var(--z-fixed);
+    }
+    
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--spacing-6);
+      margin-top: var(--spacing-6);
+    }
+    
+    .component-demo {
+      padding: var(--spacing-6);
+    }
+  </style>
+</head>
+<body data-theme="mystical">
+  
+  <!-- Theme Switcher -->
+  <div class="theme-switcher">
+    <select class="neumorphic-select" onchange="switchTheme(this.value)">
+      <option value="mystical">Mystical</option>
+      <option value="serene">Serene</option>
+      <option value="playful">Playful</option>
+      <option value="professional">Professional</option>
+    </select>
+  </div>
+
+  <!-- Header -->
+  <div class="container">
+    <header class="text-center mb-12">
+      <h1 class="text-6xl font-display font-bold mb-4 text-neumorphic-embossed">
+        🌒 ChiaroscuroCSS v2.0
+      </h1>
+      <p class="text-xl text-secondary mb-6 leading-relaxed">
+        A comprehensive neumorphic design system with accessibility, responsive design, and personality-driven theming.
+      </p>
+      <div class="d-flex justify-center gap-4 flex-wrap">
+        <a href="#buttons" class="btn btn-primary btn-pill">Explore Components</a>
+        <a href="#forms" class="btn btn-secondary btn-pill">View Forms</a>
+        <a href="#cards" class="btn btn-accent btn-pill">See Cards</a>
+      </div>
+    </header>
+
+    <!-- Navigation Showcase -->
+    <section class="showcase-section">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Navigation Components</h2>
+        
+        <!-- Navbar -->
+        <div class="navbar mb-6">
+          <div class="navbar-brand">ChiaroscuroCSS</div>
+          <nav class="navbar-nav">
+            <a href="#" class="nav-link active">Home</a>
+            <a href="#" class="nav-link">Components</a>
+            <a href="#" class="nav-link">Docs</a>
+            <a href="#" class="nav-link">About</a>
+          </nav>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-pills mb-6">
+          <button class="tab active" onclick="showTab('tab1')">Overview</button>
+          <button class="tab" onclick="showTab('tab2')">Features</button>
+          <button class="tab" onclick="showTab('tab3')">Themes</button>
+        </div>
+
+        <!-- Breadcrumbs -->
+        <nav class="breadcrumb">
+          <span class="breadcrumb-item"><a href="#">Home</a></span>
+          <span class="breadcrumb-item"><a href="#">Components</a></span>
+          <span class="breadcrumb-item active">Navigation</span>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Button Showcase -->
+    <section class="showcase-section" id="buttons">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Button Components</h2>
+        
+        <div class="demo-grid">
+          <!-- Button Styles -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Button Styles</h3>
+            <div class="d-flex flex-wrap gap-3">
+              <button class="btn">Default</button>
+              <button class="btn btn-primary">Primary</button>
+              <button class="btn btn-success">Success</button>
+              <button class="btn btn-warning">Warning</button>
+              <button class="btn btn-error">Error</button>
+              <button class="btn btn-ghost">Ghost</button>
+              <button class="btn btn-outline">Outline</button>
+            </div>
+          </div>
+
+          <!-- Button Sizes -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Button Sizes</h3>
+            <div class="d-flex flex-wrap items-center gap-3">
+              <button class="btn btn-sm">Small</button>
+              <button class="btn">Medium</button>
+              <button class="btn btn-lg">Large</button>
+              <button class="btn btn-xl">Extra Large</button>
+            </div>
+          </div>
+
+          <!-- Button Shapes -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Button Shapes</h3>
+            <div class="d-flex flex-wrap items-center gap-3">
+              <button class="btn btn-pill btn-primary">Pill Button</button>
+              <button class="btn btn-circular btn-accent">+</button>
+              <button class="btn btn-square btn-success">□</button>
+            </div>
+          </div>
+
+          <!-- Button States -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Button States</h3>
+            <div class="d-flex flex-wrap gap-3">
+              <button class="btn btn-primary">Normal</button>
+              <button class="btn btn-primary btn-loading">Loading</button>
+              <button class="btn btn-primary" disabled>Disabled</button>
+              <button class="btn btn-primary btn-pressed">Pressed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form Showcase -->
+    <section class="showcase-section" id="forms">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Form Components</h2>
+        
+        <div class="demo-grid">
+          <!-- Text Inputs -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Text Inputs</h3>
+            <div class="space-y-4">
+              <div class="form-field">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="neumorphic-input" placeholder="Enter your email">
+              </div>
+              
+              <div class="form-field">
+                <label class="form-label">Large Input</label>
+                <input type="text" class="neumorphic-input input-lg" placeholder="Large input field">
+              </div>
+              
+              <div class="form-field">
+                <label class="form-label">Message</label>
+                <textarea class="neumorphic-textarea" placeholder="Your message here..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Controls -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Form Controls</h3>
+            <div class="space-y-4">
+              <div class="neumorphic-select">
+                <select>
+                  <option>Choose an option</option>
+                  <option>Option 1</option>
+                  <option>Option 2</option>
+                  <option>Option 3</option>
+                </select>
+              </div>
+              
+              <div class="space-y-3">
+                <label class="neumorphic-checkbox">
+                  <input type="checkbox" checked>
+                  <span class="checkbox-box"></span>
+                  <span class="checkbox-label">I agree to the terms</span>
+                </label>
+                
+                <label class="neumorphic-radio">
+                  <input type="radio" name="option" checked>
+                  <span class="radio-circle"></span>
+                  <span class="radio-label">Option A</span>
+                </label>
+                
+                <label class="neumorphic-radio">
+                  <input type="radio" name="option">
+                  <span class="radio-circle"></span>
+                  <span class="radio-label">Option B</span>
+                </label>
+                
+                <label class="neumorphic-switch">
+                  <input type="checkbox" checked>
+                  <span class="switch-track">
+                    <span class="switch-thumb"></span>
+                  </span>
+                  <span class="switch-label">Enable notifications</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- File Upload -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">File Upload</h3>
+            <div class="neumorphic-file">
+              <input type="file" id="file-upload">
+              <label for="file-upload" class="file-label">
+                📁 Choose File
+              </label>
+            </div>
+          </div>
+
+          <!-- Input Groups -->
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Input Groups</h3>
+            <div class="input-group">
+              <span class="input-addon">@</span>
+              <input class="neumorphic-input" type="text" placeholder="Username">
+              <span class="input-addon">.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card Showcase -->
+    <section class="showcase-section" id="cards">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Card Components</h2>
+        
+        <div class="demo-grid">
+          <!-- Basic Cards -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-header-title">Basic Card</h3>
+              <p class="card-header-subtitle">With header and footer</p>
+            </div>
+            <div class="card-body">
+              <p class="card-text">This is a basic card with header, body, and footer sections. Perfect for displaying structured content.</p>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-sm btn-primary">Action</button>
+              <button class="btn btn-sm btn-ghost">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Profile Card -->
+          <div class="card card-profile">
+            <img src="https://via.placeholder.com/80" alt="Avatar" class="card-avatar card-avatar-lg">
+            <h3 class="card-title">John Doe</h3>
+            <p class="card-subtitle">Senior Developer</p>
+            <p class="card-text">Passionate about creating beautiful user experiences with code.</p>
+            <div class="card-actions">
+              <button class="btn btn-primary btn-sm">Follow</button>
+              <button class="btn btn-ghost btn-sm">Message</button>
+            </div>
+          </div>
+
+          <!-- Stats Card -->
+          <div class="card">
+            <div class="card-stats">
+              <div class="card-stat">
+                <span class="card-stat-value">1.2k</span>
+                <span class="card-stat-label">Followers</span>
+              </div>
+              <div class="card-stat">
+                <span class="card-stat-value">432</span>
+                <span class="card-stat-label">Following</span>
+              </div>
+              <div class="card-stat">
+                <span class="card-stat-value">89</span>
+                <span class="card-stat-label">Posts</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Card -->
+          <div class="card card-feature card-primary">
+            <div class="card-feature-icon">⚡</div>
+            <h3 class="card-title">Lightning Fast</h3>
+            <p class="card-text">Optimized for performance with minimal CSS footprint and efficient rendering.</p>
+          </div>
+
+          <!-- Image Card -->
+          <div class="card">
+            <img src="https://via.placeholder.com/400x200" alt="Card image" class="card-image">
+            <div class="card-body">
+              <h3 class="card-title">Beautiful Landscapes</h3>
+              <p class="card-text">Discover amazing places around the world with our curated collection.</p>
+              <div class="card-actions">
+                <button class="btn btn-primary">Explore</button>
+              </div>
+            </div>
+            <div class="card-badge">New</div>
+          </div>
+
+          <!-- Floating Card -->
+          <div class="card card-floating card-secondary">
+            <h3 class="card-title">Floating Effect</h3>
+            <p class="card-text">This card has an enhanced floating shadow effect that creates depth and visual interest.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Neumorphic Effects Showcase -->
+    <section class="showcase-section">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Neumorphic Effects</h2>
+        
+        <div class="demo-grid">
+          <div class="neumorphic-raised component-demo">
+            <h3 class="text-lg font-semibold mb-2">Raised</h3>
+            <p class="text-secondary">Elements appear elevated above the surface</p>
+          </div>
+          
+          <div class="neumorphic-inset component-demo">
+            <h3 class="text-lg font-semibold mb-2">Inset</h3>
+            <p class="text-secondary">Elements appear pressed into the surface</p>
+          </div>
+          
+          <div class="neumorphic-beveled component-demo">
+            <h3 class="text-lg font-semibold mb-2">Beveled</h3>
+            <p class="text-secondary">Combination of raised and inset effects</p>
+          </div>
+          
+          <div class="neumorphic-flat component-demo">
+            <h3 class="text-lg font-semibold mb-2">Flat</h3>
+            <p class="text-secondary">Subtle depth with minimal shadows</p>
+          </div>
+          
+          <div class="neumorphic-glow component-demo">
+            <h3 class="text-lg font-semibold mb-2">Glow</h3>
+            <p class="text-secondary">Enhanced with accent-colored glow</p>
+          </div>
+          
+          <div class="neumorphic-pressed component-demo">
+            <h3 class="text-lg font-semibold mb-2">Pressed</h3>
+            <p class="text-secondary">Permanent pressed state</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography Showcase -->
+    <section class="showcase-section">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Typography & Text Effects</h2>
+        
+        <div class="demo-grid">
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Text Sizes</h3>
+            <div class="space-y-2">
+              <p class="text-xs">Extra Small Text (12px)</p>
+              <p class="text-sm">Small Text (14px)</p>
+              <p class="text-base">Base Text (16px)</p>
+              <p class="text-lg">Large Text (18px)</p>
+              <p class="text-xl">Extra Large Text (20px)</p>
+              <p class="text-2xl">2XL Text (24px)</p>
+            </div>
+          </div>
+          
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Font Weights</h3>
+            <div class="space-y-2">
+              <p class="font-light">Light Weight</p>
+              <p class="font-normal">Normal Weight</p>
+              <p class="font-medium">Medium Weight</p>
+              <p class="font-semibold">Semibold Weight</p>
+              <p class="font-bold">Bold Weight</p>
+            </div>
+          </div>
+          
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Neumorphic Text Effects</h3>
+            <div class="space-y-3">
+              <p class="text-lg text-neumorphic-embossed">Embossed Text</p>
+              <p class="text-lg text-neumorphic-engraved">Engraved Text</p>
+              <p class="text-lg text-neumorphic-glow">Glowing Text</p>
+              <p class="text-lg text-shadow-lg">Shadow Text</p>
+            </div>
+          </div>
+          
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Text Colors</h3>
+            <div class="space-y-2">
+              <p class="text-primary">Primary Text</p>
+              <p class="text-secondary">Secondary Text</p>
+              <p class="text-accent">Accent Text</p>
+              <p class="text-success">Success Text</p>
+              <p class="text-warning">Warning Text</p>
+              <p class="text-error">Error Text</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Utility Classes Showcase -->
+    <section class="showcase-section">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Utility Classes</h2>
+        
+        <div class="demo-grid">
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Flexbox Layout</h3>
+            <div class="d-flex justify-between items-center p-4 bg-secondary rounded-md mb-3">
+              <span>Left</span>
+              <span>Center</span>
+              <span>Right</span>
+            </div>
+            <div class="d-flex flex-col gap-2">
+              <div class="p-2 bg-secondary rounded text-center">Item 1</div>
+              <div class="p-2 bg-secondary rounded text-center">Item 2</div>
+              <div class="p-2 bg-secondary rounded text-center">Item 3</div>
+            </div>
+          </div>
+          
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Grid Layout</h3>
+            <div class="d-grid grid-cols-3 gap-2">
+              <div class="p-4 bg-secondary rounded text-center">1</div>
+              <div class="p-4 bg-secondary rounded text-center">2</div>
+              <div class="p-4 bg-secondary rounded text-center">3</div>
+              <div class="p-4 bg-secondary rounded text-center col-span-2">4-5</div>
+              <div class="p-4 bg-secondary rounded text-center">6</div>
+            </div>
+          </div>
+          
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Spacing</h3>
+            <div class="space-y-4">
+              <div class="p-2 bg-secondary rounded">Padding 2</div>
+              <div class="p-4 bg-secondary rounded">Padding 4</div>
+              <div class="p-6 bg-secondary rounded">Padding 6</div>
+            </div>
+          </div>
+          
+          <div class="component-demo neumorphic-raised">
+            <h3 class="text-lg font-semibold mb-4">Shadows</h3>
+            <div class="space-y-4">
+              <div class="p-4 bg-secondary rounded shadow-sm">Small Shadow</div>
+              <div class="p-4 bg-secondary rounded shadow">Default Shadow</div>
+              <div class="p-4 bg-secondary rounded shadow-lg">Large Shadow</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pagination -->
+    <section class="showcase-section">
+      <div class="card-lg">
+        <h2 class="text-3xl font-bold mb-6 text-accent">Pagination</h2>
+        <div class="pagination">
+          <a href="#" class="page-link">‹</a>
+          <a href="#" class="page-link">1</a>
+          <span class="page-item active"><span class="page-link">2</span></span>
+          <a href="#" class="page-link">3</a>
+          <a href="#" class="page-link">4</a>
+          <a href="#" class="page-link">5</a>
+          <a href="#" class="page-link">›</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center py-12">
+      <div class="card-lg">
+        <h3 class="text-2xl font-bold mb-4">Ready to Get Started?</h3>
+        <p class="text-secondary mb-6">Experience the power of neumorphic design with ChiaroscuroCSS v2.0</p>
+        <div class="d-flex justify-center gap-4 flex-wrap">
+          <a href="https://github.com/rubyrayjuntos/chiaroscuro-css" class="btn btn-primary btn-lg">
+            📚 Documentation
+          </a>
+          <a href="https://github.com/rubyrayjuntos/chiaroscuro-css" class="btn btn-secondary btn-lg">
+            ⭐ Star on GitHub
+          </a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    function switchTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+    }
+    
+    function showTab(tabId) {
+      // Remove active class from all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+      
+      // You could implement tab content switching here
+      console.log('Switched to tab:', tabId);
+    }
+  </script>
+</body>
+</html>

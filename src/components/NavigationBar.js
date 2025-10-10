@@ -32,13 +32,15 @@ const NavigationBar = () => {
                 <BookOpen size={18} />
                 <span>Training</span>
                 </button>
-                <button
-                onClick={() => setCurrentView('reports')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'reports' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                >
-                <BarChart3 size={18} />
-                <span>Manager Reports</span>
-                </button>
+                {user?.permissions === 'admin' && (
+                    <button
+                    onClick={() => setCurrentView('reports')}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'reports' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
+                    >
+                    <BarChart3 size={18} />
+                    <span>Manager Reports</span>
+                    </button>
+                )}
                 <button
                 onClick={() => setCurrentView('planograms')}
                 className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'planograms' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
@@ -46,14 +48,16 @@ const NavigationBar = () => {
                 <ClipboardCheck size={18} />
                 <span>Planograms</span>
                 </button>
-                <button
-                    onClick={() => setCurrentView('my-tasks')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'my-tasks' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                >
-                    <ClipboardCheck size={18} />
-                    <span>My Tasks</span>
-                </button>
-                {user?.role === 'admin' && (
+                {user?.permissions === 'user' && (
+                    <button
+                        onClick={() => setCurrentView('my-tasks')}
+                        className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'my-tasks' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
+                    >
+                        <ClipboardCheck size={18} />
+                        <span>My Tasks</span>
+                    </button>
+                )}
+                {user?.permissions === 'admin' && (
                     <button
                     onClick={() => setCurrentView('users')}
                     className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'users' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}

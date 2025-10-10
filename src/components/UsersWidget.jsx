@@ -7,7 +7,7 @@ const UsersWidget = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('user');
+    const [permissions, setPermissions] = useState('user');
     const [editingUser, setEditingUser] = useState(null);
 
     useEffect(() => {
@@ -21,15 +21,15 @@ const UsersWidget = () => {
             return;
         }
         if (editingUser) {
-            await updateUser({ ...editingUser, name, email, phone, role });
+            await updateUser({ ...editingUser, name, email, phone, permissions });
         } else {
-            await addUser({ name, email, phone, password, role });
+            await addUser({ name, email, phone, password, permissions });
         }
         setName('');
         setEmail('');
         setPhone('');
         setPassword('');
-        setRole('user');
+        setPermissions('user');
         setEditingUser(null);
     };
 
@@ -38,7 +38,7 @@ const UsersWidget = () => {
         setName(user.name);
         setEmail(user.email);
         setPhone(user.phone);
-        setRole(user.role);
+        setPermissions(user.permissions);
     };
 
     return (
@@ -89,11 +89,11 @@ const UsersWidget = () => {
                         </div>
                     )}
                     <div>
-                        <label className="block text-gray-700">Role</label>
+                        <label className="block text-gray-700">Permissions</label>
                         <select
                             className="w-full p-2 border border-gray-300 rounded mt-1"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
+                            value={permissions}
+                            onChange={(e) => setPermissions(e.target.value)}
                         >
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
@@ -112,7 +112,7 @@ const UsersWidget = () => {
                             <th className="p-2 border-b">Name</th>
                             <th className="p-2 border-b">Email</th>
                             <th className="p-2 border-b">Phone</th>
-                            <th className="p-2 border-b">Role</th>
+                            <th className="p-2 border-b">Permissions</th>
                             <th className="p-2 border-b">Actions</th>
                         </tr>
                     </thead>
@@ -122,7 +122,7 @@ const UsersWidget = () => {
                                 <td className="p-2 border-b">{user.name}</td>
                                 <td className="p-2 border-b">{user.email}</td>
                                 <td className="p-2 border-b">{user.phone}</td>
-                                <td className="p-2 border-b">{user.role}</td>
+                                <td className="p-2 border-b">{user.permissions}</td>
                                 <td className="p-2 border-b">
                                     <button onClick={() => handleEdit(user)} className="bg-yellow-500 text-white p-1 rounded mr-2">Edit</button>
                                     <button onClick={() => deleteUser(user.id)} className="bg-red-500 text-white p-1 rounded">Delete</button>

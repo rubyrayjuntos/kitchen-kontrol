@@ -2,10 +2,12 @@ import { create } from 'zustand';
 
 const useStore = create((set) => ({
   scheduleData: { phases: {} },
-  roles: {},
+  roles: [],
+  userRoles: [],
+  rolePhases: [],
   absentees: [],
   trainingModules: [],
-  newAbsenceData: { name: '', date: '', reason: '' },
+  newAbsenceData: { user_id: '', start_date: '', end_date: '', reason: '' },
   selection: null,
   editingPhaseData: null,
   editingRoleData: null,
@@ -18,26 +20,39 @@ const useStore = create((set) => ({
   staffPerformance: [],
   planograms: [],
   selectedPlanogram: null,
+  tasks: [],
 
   login: async (email, password) => {
     try {
-        const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (data.token) {
-            set({ user: data.token });
-        }
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (data.token) {
+        set({ user: { token: data.token } });
+        await useStore.getState().fetchCurrentUser();
+      }
     } catch (error) {
-        console.error('Login failed:', error);
+      console.error('Login failed:', error);
+    }
+  },
+
+  logout: () => set({ user: null }),
+
+  fetchCurrentUser: async () => {
+    try {
+      const data = await useStore.getState().makeApiCall('/api/me', 'GET');
+      set({ user: { ...useStore.getState().user, ...data } });
+    } catch (error) {
+      console.error('Failed to fetch current user:', error);
     }
   },
 
   makeApiCall: async (endpoint, method, body) => {
     try {
-        const token = useStore.getState().user;
+        const token = useStore.getState().user?.token;
         const headers = { 'Content-Type': 'application/json' };
         if (token) {
             headers['x-auth-token'] = token;
@@ -94,8 +109,43 @@ const useStore = create((set) => ({
   },
 
   assignRole: async (userId, roleId) => {
-    await useStore.getState().makeApiCall('/api/roles/assign', 'POST', { userId, roleId });
-    useStore.getState().fetchRoles();
+    await useStore.getState().makeApiCall('/api/user-roles/assign', 'POST', { userId, roleId });
+    useStore.getState().fetchUserRoles();
+  },
+
+  assignRoleToPhase: async (roleId, phaseId) => {
+    await useStore.getState().makeApiCall('/api/role-phases/assign', 'POST', { roleId, phaseId });
+    useStore.getState().fetchRolePhases();
+  },
+
+  unassignRoleFromPhase: async (roleId, phaseId) => {
+    await useStore.getState().makeApiCall('/api/role-phases/unassign', 'POST', { roleId, phaseId });
+    useStore.getState().fetchRolePhases();
+  },
+
+  addPhase: async (phase) => {
+    await useStore.getState().makeApiCall('/api/phases', 'POST', phase);
+    useStore.getState().fetchInitialData();
+  },
+
+  deletePhase: async (phaseId) => {
+    await useStore.getState().makeApiCall(`/api/phases/${phaseId}`, 'DELETE');
+    useStore.getState().fetchInitialData();
+  },
+
+  addTask: async (task) => {
+    await useStore.getState().makeApiCall('/api/tasks', 'POST', task);
+    useStore.getState().fetchTasks();
+  },
+
+  updateTask: async (task) => {
+    await useStore.getState().makeApiCall(`/api/tasks/${task.id}`, 'PUT', task);
+    useStore.getState().fetchTasks();
+  },
+
+  deleteTask: async (taskId) => {
+    await useStore.getState().makeApiCall(`/api/tasks/${taskId}`, 'DELETE');
+    useStore.getState().fetchTasks();
   },
 
   setSelection: (value) => set({ selection: value }),
@@ -106,18 +156,22 @@ const useStore = create((set) => ({
 
   fetchPhases: async () => {
     const data = await useStore.getState().makeApiCall('/api/phases', 'GET');
-    return data.data.reduce((acc, phase) => {
-        acc[phase.id] = { ...phase, tasks: {} };
-        return acc;
-    }, {});
+    return data.data;
   },
 
   fetchRoles: async () => {
     const data = await useStore.getState().makeApiCall('/api/roles', 'GET');
-    return data.data.reduce((acc, role) => {
-        acc[role.id] = { ...role, tasks: [] };
-        return acc;
-    }, {});
+    return data.data;
+  },
+
+  fetchUserRoles: async () => {
+    const data = await useStore.getState().makeApiCall('/api/user-roles', 'GET');
+    return data.data;
+  },
+
+  fetchRolePhases: async () => {
+    const data = await useStore.getState().makeApiCall('/api/role-phases', 'GET');
+    return data.data;
   },
 
   fetchTasks: async () => {
@@ -127,7 +181,7 @@ const useStore = create((set) => ({
 
   fetchAbsentees: async () => {
     const data = await useStore.getState().makeApiCall('/api/absences', 'GET');
-    return data.data;
+    set({ absentees: data.data });
   },
 
   fetchTrainingModules: async () => {
@@ -170,19 +224,19 @@ const useStore = create((set) => ({
     try {
         await useStore.getState().fetchUsers();
         await useStore.getState().fetchPlanograms();
-        const [phasesMap, rolesMap, tasks, absentees, trainingModules] = await Promise.all([
+        await useStore.getState().fetchAbsentees();
+        const [phases, roles, userRoles, rolePhases, tasks, trainingModules] = await Promise.all([
             useStore.getState().fetchPhases(),
             useStore.getState().fetchRoles(),
+            useStore.getState().fetchUserRoles(),
+            useStore.getState().fetchRolePhases(),
             useStore.getState().fetchTasks(),
-            useStore.getState().fetchAbsentees(),
             useStore.getState().fetchTrainingModules(),
             useStore.getState().fetchAuditLog(),
             useStore.getState().fetchStaffPerformance(),
         ]);
 
         const tasksByRole = {};
-        const tasksByPhase = {};
-
         for (const task of tasks) {
             if (task.role_id) {
                 if (!tasksByRole[task.role_id]) {
@@ -190,33 +244,33 @@ const useStore = create((set) => ({
                 }
                 tasksByRole[task.role_id].push(task);
             }
-            if (task.phase_id) {
-                if (!tasksByPhase[task.phase_id]) {
-                    tasksByPhase[task.phase_id] = {};
-                }
-                if (!tasksByPhase[task.phase_id][task.role_id || 'all']) {
-                    tasksByPhase[task.phase_id][task.role_id || 'all'] = [];
-                }
-                tasksByPhase[task.phase_id][task.role_id || 'all'].push(task);
-            }
         }
 
-        for (const roleId in rolesMap) {
-            if (tasksByRole[roleId]) {
-                rolesMap[roleId].tasks = tasksByRole[roleId];
-            }
-        }
+        const rolesWithTasks = roles.map(role => ({
+            ...role,
+            tasks: tasksByRole[role.id] || []
+        }));
 
-        for (const phaseId in phasesMap) {
-            if (tasksByPhase[phaseId]) {
-                phasesMap[phaseId].tasks = tasksByPhase[phaseId];
+        const phasesMap = phases.reduce((acc, phase) => {
+            acc[phase.id] = { ...phase, roles: [] };
+            return acc;
+        }, {});
+
+        for (const rp of rolePhases) {
+            if (phasesMap[rp.phase_id]) {
+                const role = rolesWithTasks.find(r => r.id === rp.role_id);
+                if (role) {
+                    phasesMap[rp.phase_id].roles.push(role);
+                }
             }
         }
 
         set({ 
             scheduleData: { phases: phasesMap }, 
-            roles: rolesMap, 
-            absentees: absentees, 
+            roles: rolesWithTasks,
+            userRoles: userRoles,
+            rolePhases: rolePhases,
+            tasks: tasks,
             trainingModules,
         });
     } catch (error) {
@@ -263,7 +317,7 @@ const useStore = create((set) => ({
         }));
     });
   },
-  handleEditRole: (roleId) => set(state => ({ editingRoleData: { ...state.roles[roleId], id: roleId }})),
+  handleEditRole: (roleId) => set(state => ({ editingRoleData: state.roles.find(r => r.id === roleId) })),
   handleSaveRole: () => {
     const { editingRoleData } = useStore.getState();
     useStore.getState().makeApiCall(
@@ -271,13 +325,8 @@ const useStore = create((set) => ({
         'PUT',
         editingRoleData
     ).then(() => {
-        set(prev => ({
-            roles: {
-                ...prev.roles,
-                [editingRoleData.id]: editingRoleData
-            },
-            editingRoleData: null
-        }));
+        useStore.getState().fetchRoles();
+        set({ editingRoleData: null });
     });
   },
   handleAddNewAbsence: () => {
@@ -289,7 +338,7 @@ const useStore = create((set) => ({
     ).then((data) => {
         set(prev => ({
             absentees: [...prev.absentees, { ...newAbsenceData, id: data.id, approved: false, approvalDate: null }],
-            newAbsenceData: { name: '', date: '', reason: '' }
+            newAbsenceData: { user_id: '', start_date: '', end_date: '', reason: '' }
         }));
     });
   },

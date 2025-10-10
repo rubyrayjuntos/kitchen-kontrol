@@ -6,7 +6,7 @@ const { body, validationResult } = require('express-validator');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res, next) => {
-    db.all("SELECT id, name, email, phone, role FROM users", [], (err, rows) => {
+    db.all("SELECT id, name, email, phone, permissions FROM users", [], (err, rows) => {
         if (err) {
             next(err);
         } else {
@@ -26,11 +26,11 @@ router.post("/", auth,
         console.error('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone, permissions } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     db.run(
-        `INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)`,
-        [name, email, hashedPassword, phone, role || 'user'],
+        `INSERT INTO users (name, email, password, phone, permissions) VALUES (?, ?, ?, ?, ?)`,
+        [name, email, hashedPassword, phone, permissions || 'user'],
         function (err) {
             if (err) {
                 console.error('Error inserting user:', err);
@@ -51,16 +51,16 @@ router.post("/", auth,
 router.put("/:id", auth,
     body('name').notEmpty(),
     body('email').isEmail(),
-    body('role').notEmpty(),
+    body('permissions').notEmpty(),
     (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const { name, email, phone, role } = req.body;
+    const { name, email, phone, permissions } = req.body;
     db.run(
-        `UPDATE users SET name = ?, email = ?, phone = ?, role = ? WHERE id = ?`,
-        [name, email, phone, role, req.params.id],
+        `UPDATE users SET name = ?, email = ?, phone = ?, permissions = ? WHERE id = ?`,
+        [name, email, phone, permissions, req.params.id],
         function (err) {
             if (err) {
                 next(err);

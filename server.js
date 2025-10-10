@@ -37,6 +37,15 @@ app.use('/api/ingredients', ingredientsRouter);
 const authRouter = require('./routes/auth');
 app.use('/api/auth', authRouter);
 
+const meRouter = require('./routes/me');
+app.use('/api/me', meRouter);
+
+const userRolesRouter = require('./routes/user-roles');
+app.use('/api/user-roles', userRolesRouter);
+
+const rolePhasesRouter = require('./routes/role-phases');
+app.use('/api/role-phases', rolePhasesRouter);
+
 const usersRouter = require('./routes/users');
 app.use('/api/users', usersRouter);
 

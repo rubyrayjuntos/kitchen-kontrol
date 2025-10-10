@@ -17,31 +17,47 @@ const seedDatabase = (db) => {
         { id: 'dishwasher', name: 'Dishwasher' }
     ];
 
+    const rolePhases = [
+        { role_id: 'head-chef', phase_id: 'prep' },
+        { role_id: 'sous-chef', phase_id: 'prep' },
+        { role_id: 'line-cook-1', phase_id: 'prep' },
+        { role_id: 'line-cook-2', phase_id: 'prep' },
+        { role_id: 'line-cook-1', phase_id: 'breakfast' },
+        { role_id: 'line-cook-2', phase_id: 'breakfast' },
+        { role_id: 'dishwasher', phase_id: 'breakfast' },
+        { role_id: 'sous-chef', phase_id: 'lunch-prep' },
+        { role_id: 'line-cook-1', phase_id: 'lunch-prep' },
+        { role_id: 'line-cook-1', phase_id: 'lunch' },
+        { role_id: 'line-cook-2', phase_id: 'lunch' },
+        { role_id: 'head-chef', phase_id: 'lunch' },
+        { role_id: 'dishwasher', phase_id: 'planogram' },
+    ];
+
     const tasks = [
         // Prep Phase
-        { name: 'Review daily menu and prep list', description: 'Review daily menu and prep list', role_id: 'head-chef', phase_id: 'prep' },
-        { name: 'Receive and store deliveries', description: 'Receive and store deliveries', role_id: 'sous-chef', phase_id: 'prep' },
-        { name: 'Wash and chop vegetables', description: 'Wash and chop vegetables', role_id: 'line-cook-1', phase_id: 'prep' },
-        { name: 'Prepare sauces and dressings', description: 'Prepare sauces and dressings', role_id: 'line-cook-2', phase_id: 'prep' },
+        { name: 'Review daily menu and prep list', description: 'Review daily menu and prep list', role_id: 'head-chef' },
+        { name: 'Receive and store deliveries', description: 'Receive and store deliveries', role_id: 'sous-chef' },
+        { name: 'Wash and chop vegetables', description: 'Wash and chop vegetables', role_id: 'line-cook-1' },
+        { name: 'Prepare sauces and dressings', description: 'Prepare sauces and dressings', role_id: 'line-cook-2' },
 
         // Breakfast Phase
-        { name: 'Cook breakfast entrees', description: 'Cook breakfast entrees', role_id: 'line-cook-1', phase_id: 'breakfast' },
-        { name: 'Set up breakfast service line', description: 'Set up breakfast service line', role_id: 'line-cook-2', phase_id: 'breakfast' },
-        { name: 'Brew coffee and tea', description: 'Brew coffee and tea', role_id: 'dishwasher', phase_id: 'breakfast' },
+        { name: 'Cook breakfast entrees', description: 'Cook breakfast entrees', role_id: 'line-cook-1' },
+        { name: 'Set up breakfast service line', description: 'Set up breakfast service line', role_id: 'line-cook-2' },
+        { name: 'Brew coffee and tea', description: 'Brew coffee and tea', role_id: 'dishwasher' },
 
         // Lunch Prep Phase
-        { name: 'Marinate meats', description: 'Marinate meats', role_id: 'sous-chef', phase_id: 'lunch-prep' },
-        { name: 'Assemble sandwiches and salads', description: 'Assemble sandwiches and salads', role_id: 'line-cook-1', phase_id: 'lunch-prep' },
+        { name: 'Marinate meats', description: 'Marinate meats', role_id: 'sous-chef' },
+        { name: 'Assemble sandwiches and salads', description: 'Assemble sandwiches and salads', role_id: 'line-cook-1' },
 
         // Lunch Phase
-        { name: 'Cook lunch entrees', description: 'Cook lunch entrees', role_id: 'line-cook-1', phase_id: 'lunch' },
-        { name: 'Restock service line', description: 'Restock service line', role_id: 'line-cook-2', phase_id: 'lunch' },
-        { name: 'Expedite orders', description: 'Expedite orders', role_id: 'head-chef', phase_id: 'lunch' },
+        { name: 'Cook lunch entrees', description: 'Cook lunch entrees', role_id: 'line-cook-1' },
+        { name: 'Restock service line', description: 'Restock service line', role_id: 'line-cook-2' },
+        { name: 'Expedite orders', description: 'Expedite orders', role_id: 'head-chef' },
 
         // Planogram Phase
-        { name: 'Clean and sanitize workstations', description: 'Clean and sanitize workstations', role_id: 'dishwasher', phase_id: 'planogram' },
-        { name: 'Wash dishes', description: 'Wash dishes', role_id: 'dishwasher', phase_id: 'planogram' },
-        { name: 'Sweep and mop floors', description: 'Sweep and mop floors', role_id: 'dishwasher', phase_id: 'planogram' },
+        { name: 'Clean and sanitize workstations', description: 'Clean and sanitize workstations', role_id: 'dishwasher' },
+        { name: 'Wash dishes', description: 'Wash dishes', role_id: 'dishwasher' },
+        { name: 'Sweep and mop floors', description: 'Sweep and mop floors', role_id: 'dishwasher' },
     ];
 
     const trainingModules = [
@@ -71,7 +87,7 @@ const seedDatabase = (db) => {
             required: true,
             content: JSON.stringify({
                 sections: [
-                    { title: 'Choosing the Right Knife', content: 'An overview of different types of kitchen knives.', keyPoints: ["Chef\'s knife", 'Paring knife', 'Serrated knife'] },
+                    { title: 'Choosing the Right Knife', content: 'An overview of different types of kitchen knives.', keyPoints: ["Chef's knife", 'Paring knife', 'Serrated knife'] },
                     { title: 'Proper Grip and Stance', content: 'How to hold a knife for maximum control and safety.', keyPoints: ['The "pinch" grip', 'Body positioning', 'Using a stable cutting board'] },
                     { title: 'Basic Cuts', content: 'Mastering fundamental cuts like dicing, mincing, and julienning.', keyPoints: ['Uniformity for even cooking', 'Practice with soft vegetables first', 'Keep your fingers curled'] }
                 ],
@@ -93,8 +109,12 @@ const seedDatabase = (db) => {
                 roles.forEach(role => roleStmt.run(role.id, role.name));
                 roleStmt.finalize();
 
-                const taskStmt = db.prepare("INSERT INTO tasks (name, description, role_id, phase_id) VALUES (?, ?, ?, ?)");
-                tasks.forEach(task => taskStmt.run(task.name, task.description, task.role_id, task.phase_id));
+                const rolePhaseStmt = db.prepare("INSERT INTO role_phases (role_id, phase_id) VALUES (?, ?)");
+                rolePhases.forEach(rp => rolePhaseStmt.run(rp.role_id, rp.phase_id));
+                rolePhaseStmt.finalize();
+
+                const taskStmt = db.prepare("INSERT INTO tasks (name, description, role_id) VALUES (?, ?, ?)");
+                tasks.forEach(task => taskStmt.run(task.name, task.description, task.role_id));
                 taskStmt.finalize();
 
                 const trainingStmt = db.prepare("INSERT INTO training_modules (id, title, description, duration, required, content) VALUES (?, ?, ?, ?, ?, ?)");
@@ -113,15 +133,24 @@ const seedDatabase = (db) => {
                 ingredients.forEach(ingredient => ingredientStmt.run(ingredient.name, ingredient.quantity, ingredient.unit, ingredient.category, ingredient.minStock));
                 ingredientStmt.finalize();
 
-                const userStmt = db.prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+                const userStmt = db.prepare("INSERT INTO users (name, email, password, permissions) VALUES (?, ?, ?, ?)");
                 const bcrypt = require('bcryptjs');
                 const hashedPassword = bcrypt.hashSync('password', 10);
-                userStmt.run('Admin', 'admin@example.com', hashedPassword, 'admin');
-                userStmt.finalize();
+                userStmt.run('Admin', 'admin@example.com', hashedPassword, 'admin', function(err) {
+                    if (err) {
+                        console.error(err.message);
+                        return;
+                    }
+                    const userId = this.lastID;
+                    const userRolesStmt = db.prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
+                    userRolesStmt.run(userId, 'head-chef');
+                    userRolesStmt.finalize();
 
-                const userRolesStmt = db.prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-                userRolesStmt.run(1, 'head-chef');
-                userRolesStmt.finalize();
+                    const absenceStmt = db.prepare("INSERT INTO absences (user_id, start_date, end_date, reason, approved, approvalDate) VALUES (?, ?, ?, ?, ?, ?)");
+                    absenceStmt.run(userId, '2025-10-10', '2025-10-12', 'Vacation', true, '2025-10-01');
+                    absenceStmt.finalize();
+                });
+                userStmt.finalize();
 
                 console.log("Database seeded with initial data.");
             }

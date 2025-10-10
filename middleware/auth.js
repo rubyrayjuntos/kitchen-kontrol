@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../db');
 
 module.exports = function(req, res, next) {
     // Get token from header
@@ -12,8 +13,16 @@ module.exports = function(req, res, next) {
     // Verify token
     try {
         const decoded = jwt.verify(token, 'your-secret-key');
-        req.user = decoded;
-        next();
+        db.get('SELECT id, name, email, permissions FROM users WHERE id = ?', [decoded.id], (err, user) => {
+            if (err) {
+                return res.status(500).send('Server error');
+            }
+            if (!user) {
+                return res.status(404).json({ msg: 'User not found' });
+            }
+            req.user = user;
+            next();
+        });
     } catch (err) {
         res.status(401).json({ msg: 'Token is not valid' });
     }

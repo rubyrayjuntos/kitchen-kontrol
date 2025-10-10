@@ -5,13 +5,7 @@ const { body, validationResult } = require('express-validator');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res) => {
-    const query = `
-        SELECT r.id, r.name, u.name as assignedUser
-        FROM roles r
-        LEFT JOIN user_roles ur ON r.id = ur.role_id
-        LEFT JOIN users u ON ur.user_id = u.id
-    `;
-    db.all(query, [], (err, rows) => {
+    db.all("SELECT * FROM roles", [], (err, rows) => {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
@@ -28,19 +22,19 @@ router.post("/", auth,
         return res.status(400).json({ errors: errors.array() });
     }
     const { name } = req.body;
+    const id = name.toLowerCase().replace(/\s/g, '-');
     db.run(
-        `INSERT INTO roles (name) VALUES (?)`,
-        [name],
+        `INSERT INTO roles (id, name) VALUES (?, ?)`,
+        [id, name],
         function (err) {
             if (err) {
                 next(err);
             } else {
-                const newRoleId = this.lastID;
                 db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
-                    [req.user.id, `Created role ${name} (ID: ${newRoleId})`],
+                    [req.user.id, `Created role ${name} (ID: ${id})`],
                     (err) => { if (err) next(err); }
                 );
-                res.json({ id: newRoleId });
+                res.json({ id: id });
             }
         }
     );

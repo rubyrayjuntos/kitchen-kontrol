@@ -6,6 +6,7 @@ const RolesWidget = () => {
     const [name, setName] = useState('');
     const [editingRole, setEditingRole] = useState(null);
     const [selectedUser, setSelectedUser] = useState('');
+    const [selectedRole, setSelectedRole] = useState('');
 
     useEffect(() => {
         fetchRoles();
@@ -28,9 +29,9 @@ const RolesWidget = () => {
         setName(role.name);
     };
 
-    const handleAssignRole = (roleId) => {
-        if (selectedUser) {
-            assignRole(selectedUser, roleId);
+    const handleAssignRole = () => {
+        if (selectedUser && selectedRole) {
+            assignRole(selectedUser, selectedRole);
         }
     };
 
@@ -64,7 +65,7 @@ const RolesWidget = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {Object.values(roles).map(role => (
+                        {roles.map(role => (
                             <tr key={role.id}>
                                 <td className="p-2 border-b">{role.name}</td>
                                 <td className="p-2 border-b">
@@ -96,15 +97,19 @@ const RolesWidget = () => {
                         <label className="block text-gray-700">Role</label>
                         <select
                             className="w-full p-2 border border-gray-300 rounded mt-1"
-                            onChange={(e) => handleAssignRole(e.target.value)}
+                            value={selectedRole}
+                            onChange={(e) => setSelectedRole(e.target.value)}
                         >
                             <option value="">Select Role</option>
-                            {Object.values(roles).map(role => (
+                            {roles.map(role => (
                                 <option key={role.id} value={role.id}>{role.name}</option>
                             ))}
                         </select>
                     </div>
                 </div>
+                <button onClick={handleAssignRole} className="w-full bg-blue-500 text-white p-2 rounded mt-4">
+                    Assign Role
+                </button>
             </div>
         </div>
     );

@@ -1,0 +1,73 @@
+/* ==============================================
+   ChiaroscuroCSS - Serene Theme
+   ============================================== */
+
+[data-theme="serene"] {
+  /* === Primary Colors === */
+  --bg-primary: #2d4a3e;
+  --bg-secondary: #245139;
+  --bg-tertiary: #1a2f26;
+  --bg-elevated: #356b4a;
+  
+  /* === Text Colors === */
+  --text-primary: #e8f5e8;
+  --text-secondary: #a8c4a8;
+  --text-tertiary: #7fb069;
+  --text-disabled: #5a8766;
+  
+  /* === Accent Colors === */
+  --accent-primary: #7fb069;
+  --accent-secondary: #a8e6cf;
+  --accent-tertiary: #6b9c56;
+  --accent-success: #4ade80;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+  --accent-info: #3b82f6;
+  
+  /* === Borders === */
+  --border-primary: #4a6b56;
+  --border-secondary: #3a5446;
+  --border-accent: var(--accent-primary);
+  
+  /* === Shadows === */
+  --shadow-light: rgba(127, 176, 105, 0.3);
+  --shadow-dark: rgba(26, 47, 38, 0.8);
+  --shadow-accent: rgba(127, 176, 105, 0.4);
+  
+  /* === Theme-specific Properties === */
+  --theme-glow: 0 0 12px rgba(127, 176, 105, 0.6);
+  --theme-glow-intense: 0 0 24px rgba(127, 176, 105, 0.8);
+  --theme-gradient-start: #7fb069;
+  --theme-gradient-end: #a8e6cf;
+}
+
+/* === Serene Theme Enhancements === */
+[data-theme="serene"] .neumorphic-accent {
+  box-shadow: 
+    var(--theme-glow),
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+}
+
+[data-theme="serene"] .btn:focus {
+  box-shadow: 
+    0 0 0 var(--focus-ring-offset) var(--bg-primary),
+    0 0 0 calc(var(--focus-ring-offset) + var(--focus-ring-width)) var(--accent-primary),
+    var(--theme-glow);
+}
+
+[data-theme="serene"] .theme-gradient {
+  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
+}
+
+[data-theme="serene"] .text-theme {
+  color: var(--accent-primary);
+}
+
+[data-theme="serene"] .border-theme {
+  border-color: var(--accent-primary);
+}
+
+[data-theme="serene"] .bg-theme {
+  background-color: var(--accent-primary);
+}
