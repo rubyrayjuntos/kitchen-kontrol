@@ -10,7 +10,7 @@ services:
     plan: "starter"
     buildCommand: ""
     startCommand: "node server.js"
-    releaseCommand: "npm run migrate:up && npm run seed:pg"
+    preDeployCommand: "npm run migrate:up && npm run seed:pg"
     branch: "main"
     dockerfilePath: "Dockerfile.server"
     region: "oregon"
