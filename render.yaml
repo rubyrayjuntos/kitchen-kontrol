@@ -4,7 +4,7 @@ services:
     plan: "starter"
     region: "oregon"
 
-  - type: "web_service"
+  - type: "web"
     name: "kitchen-kontrol-backend"
     env: "docker"
     plan: "starter"
@@ -34,6 +34,6 @@ services:
     envVars:
       - key: "REACT_APP_API_URL"
         fromService:
-          type: "web_service"
+          type: "web"
           name: "kitchen-kontrol-backend"
           property: "url"
