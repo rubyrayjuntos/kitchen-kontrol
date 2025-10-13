@@ -29,6 +29,19 @@ const DailyKitchenPhasesTimeline = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Helper: Parse time string to minutes since midnight
+  const parseTime = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Helper: Format minutes to time string
+  const formatTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+
   // Parse phases from scheduleData
   const phases = scheduleData.phases ? Object.entries(scheduleData.phases)
     .map(([id, phase]) => ({
@@ -42,19 +55,6 @@ const DailyKitchenPhasesTimeline = () => {
       const timeB = parseTime(b.startTime);
       return timeA - timeB;
     }) : [];
-
-  // Helper: Parse time string to minutes since midnight
-  const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-  };
-
-  // Helper: Format minutes to time string
-  const formatTime = (minutes) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-  };
 
   // Helper: Check if current time is within phase
   const isCurrentPhase = (phase, nextPhase) => {
@@ -128,7 +128,7 @@ const DailyKitchenPhasesTimeline = () => {
   // Get task completion percentage for phase
   const getPhaseProgress = (phaseId) => {
     const phaseTasks = tasks.filter(task => task.phase_id === parseInt(phaseId));
-    if (phaseTasks.length === 0) return 0;
+    if (phaseTasks.length === 0) return null; // Return null instead of 0 when no tasks
     const completed = phaseTasks.filter(task => task.completed).length;
     return Math.round((completed / phaseTasks.length) * 100);
   };
@@ -212,12 +212,17 @@ const DailyKitchenPhasesTimeline = () => {
 
   // Carousel navigation
   const handleCarouselLeft = () => {
-    setCarouselOffset(Math.max(0, carouselOffset - 200));
+    setCarouselOffset(Math.max(0, carouselOffset - 300));
   };
 
   const handleCarouselRight = () => {
-    const maxOffset = (timelineRef.current?.scrollWidth || 0) - (containerRef.current?.offsetWidth || 0);
-    setCarouselOffset(Math.min(maxOffset, carouselOffset + 200));
+    const containerWidth = containerRef.current?.offsetWidth || 1000;
+    const totalWidth = phases.reduce((sum, phase, index) => {
+      const layout = calculatePhaseLayout(phase, index, phases);
+      return Math.max(sum, layout.left + layout.width + (index * 8));
+    }, 0);
+    const maxOffset = Math.max(0, totalWidth - containerWidth + 50); // Add 50px padding
+    setCarouselOffset(Math.min(maxOffset, carouselOffset + 300));
   };
 
   const workdayStatus = getWorkdayStatus();
@@ -256,14 +261,18 @@ const DailyKitchenPhasesTimeline = () => {
       )}
 
       {/* Timeline Container */}
-      <div className="neumorphic-inset" style={{ padding: 'var(--spacing-6)', position: 'relative', overflow: 'hidden' }} ref={containerRef}>
+      <div style={{ position: 'relative' }} ref={containerRef}>
         {/* Hour markers */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
-          marginBottom: 'var(--spacing-4)',
+          marginBottom: 'var(--spacing-3)',
+          paddingLeft: 'var(--spacing-6)',
+          paddingRight: 'var(--spacing-6)',
           fontSize: '0.875rem',
-          color: 'var(--text-secondary)'
+          color: 'var(--text-primary)',
+          fontWeight: '500',
+          opacity: '0.8'
         }}>
           {Array.from({ length: 9 }, (_, i) => (
             <div key={i} style={{ flex: 1, textAlign: i === 0 ? 'left' : i === 8 ? 'right' : 'center' }}>
@@ -272,8 +281,28 @@ const DailyKitchenPhasesTimeline = () => {
           ))}
         </div>
 
-        {/* Timeline with phases */}
-        <div style={{ position: 'relative', height: '120px', marginBottom: 'var(--spacing-4)' }} ref={timelineRef}>
+        {/* Timeline inset container */}
+        <div 
+          className="neumorphic-inset" 
+          style={{ 
+            padding: 'var(--spacing-6)', 
+            position: 'relative', 
+            overflow: 'hidden',
+            background: 'var(--bg-elevated)',
+            minHeight: '180px'
+          }}
+        >
+          {/* Timeline with phases */}
+          <div 
+            style={{ 
+              position: 'relative', 
+              height: '140px', 
+              marginBottom: 'var(--spacing-4)',
+              transform: `translateX(-${carouselOffset}px)`,
+              transition: 'transform 0.3s ease'
+            }} 
+            ref={timelineRef}
+          >
           {/* Background timeline bar */}
           <div style={{
             position: 'absolute',
@@ -304,24 +333,29 @@ const DailyKitchenPhasesTimeline = () => {
                   className={`neumorphic-raised ${isCurrent ? 'card-highlight' : ''}`}
                   style={{
                     position: 'absolute',
-                    left: `${layout.left}px`,
-                    width: `${layout.width}px`,
+                    left: `${layout.left + (index * 8)}px`,
+                    width: `${layout.width - 8}px`,
                     top: 0,
                     height: '100%',
                     padding: 'var(--spacing-3)',
                     cursor: 'pointer',
-                    border: isCurrent ? '3px solid var(--color-highlight)' : 'none',
-                    boxShadow: isCurrent ? '0 0 20px var(--color-highlight)' : undefined,
+                    border: isCurrent ? '4px solid #22c55e' : '1px solid transparent',
+                    boxShadow: isCurrent 
+                      ? '0 0 30px rgba(34, 197, 94, 0.5), inset 0 0 20px rgba(34, 197, 94, 0.1)' 
+                      : undefined,
+                    background: isCurrent ? 'var(--bg-elevated)' : 'var(--bg-primary)',
+                    transform: isCurrent ? 'scale(1.02)' : 'scale(1)',
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    overflow: 'hidden'
                   }}
                   onClick={() => {
                     setSelectedPhase(phase);
                     setShowTasksModal(true);
                   }}
-                  title={`${phase.name} (${phase.startTime} - ${layout.endTime})\nDuration: ${layout.duration} minutes\nProgress: ${progress}%`}
+                  title={`${phase.name} (${phase.startTime} - ${layout.endTime})\nDuration: ${layout.duration} minutes\n${progress !== null ? progress + '% tasks completed' : 'No tasks assigned'}`}
                 >
                   {/* Phase header */}
                   <div>
@@ -330,13 +364,15 @@ const DailyKitchenPhasesTimeline = () => {
                         {phase.name}
                       </span>
                       <button
+                        type="button"
                         className="btn btn-ghost btn-sm btn-circular"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedPhase(phase);
+                          setSelectedPhase({...phase});
                           setShowEditModal(true);
                         }}
                         aria-label="Edit phase"
+                        style={{ zIndex: 2, position: 'relative' }}
                       >
                         <Pencil size={14} />
                       </button>
@@ -349,20 +385,26 @@ const DailyKitchenPhasesTimeline = () => {
                   {/* Phase footer with progress and user count */}
                   <div>
                     {/* Progress bar */}
-                    <div style={{
-                      height: '4px',
-                      background: 'var(--bg-secondary)',
-                      borderRadius: 'var(--radius-full)',
-                      overflow: 'hidden',
-                      marginBottom: 'var(--spacing-2)'
-                    }}>
+                    {progress !== null ? (
                       <div style={{
-                        height: '100%',
-                        width: `${progress}%`,
-                        background: 'var(--color-accent)',
-                        transition: 'width 0.3s ease'
-                      }} />
-                    </div>
+                        height: '4px',
+                        background: 'var(--bg-secondary)',
+                        borderRadius: 'var(--radius-full)',
+                        overflow: 'hidden',
+                        marginBottom: 'var(--spacing-2)'
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${progress}%`,
+                          background: 'var(--color-accent)',
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                    ) : (
+                      <div className="text-secondary" style={{ fontSize: '0.7rem', marginBottom: 'var(--spacing-2)' }}>
+                        No tasks assigned
+                      </div>
+                    )}
 
                     {/* User count */}
                     <div className="d-flex items-center gap-1 text-secondary" style={{ fontSize: '0.75rem' }}>
@@ -383,24 +425,27 @@ const DailyKitchenPhasesTimeline = () => {
                 left: `${calculateNowPosition()}px`,
                 top: 0,
                 bottom: 0,
-                width: '2px',
-                background: 'var(--color-error)',
-                zIndex: 10,
-                pointerEvents: 'none'
+                width: '3px',
+                background: '#ef4444',
+                zIndex: 5,
+                pointerEvents: 'none',
+                boxShadow: '0 0 10px #ef4444'
               }}
             >
               <div style={{
                 position: 'absolute',
-                top: '-20px',
+                top: '-24px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                background: 'var(--color-error)',
-                color: 'white',
-                padding: '2px 6px',
+                background: '#ef4444',
+                color: '#ffffff',
+                padding: '4px 8px',
                 borderRadius: 'var(--radius-sm)',
-                fontSize: '0.625rem',
+                fontSize: '0.7rem',
                 fontWeight: 'bold',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                zIndex: 6
               }}>
                 NOW
               </div>
@@ -413,7 +458,7 @@ const DailyKitchenPhasesTimeline = () => {
           <>
             <button
               className="btn btn-ghost btn-circular"
-              style={{ position: 'absolute', left: 'var(--spacing-2)', top: '50%', transform: 'translateY(-50%)' }}
+              style={{ position: 'absolute', left: 'var(--spacing-2)', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
               onClick={handleCarouselLeft}
               aria-label="Scroll left"
             >
@@ -421,7 +466,7 @@ const DailyKitchenPhasesTimeline = () => {
             </button>
             <button
               className="btn btn-ghost btn-circular"
-              style={{ position: 'absolute', right: 'var(--spacing-2)', top: '50%', transform: 'translateY(-50%)' }}
+              style={{ position: 'absolute', right: 'var(--spacing-2)', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
               onClick={handleCarouselRight}
               aria-label="Scroll right"
             >
@@ -429,11 +474,12 @@ const DailyKitchenPhasesTimeline = () => {
             </button>
           </>
         )}
+        </div>
       </div>
 
       {/* Add Phase Modal */}
       {showAddModal && (
-        <Modal onClose={() => setShowAddModal(false)} title="Add New Phase">
+        <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add New Phase">
           <div className="form-group">
             <label className="form-label">Phase Name</label>
             <input
@@ -471,7 +517,7 @@ const DailyKitchenPhasesTimeline = () => {
 
       {/* Edit Phase Modal */}
       {showEditModal && selectedPhase && (
-        <Modal onClose={() => setShowEditModal(false)} title="Edit Phase">
+        <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Phase">
           <div className="form-group">
             <label className="form-label">Phase Name</label>
             <input
@@ -515,6 +561,7 @@ const DailyKitchenPhasesTimeline = () => {
       {/* Tasks Modal */}
       {showTasksModal && selectedPhase && (
         <Modal 
+          isOpen={showTasksModal}
           onClose={() => setShowTasksModal(false)} 
           title={`${selectedPhase.name} - Tasks`}
         >

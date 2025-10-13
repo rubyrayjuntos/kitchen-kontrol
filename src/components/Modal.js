@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen = true, onClose, title, children }) => {
     useEffect(() => {
       if (isOpen) {
         // Prevent body scroll when modal is open
