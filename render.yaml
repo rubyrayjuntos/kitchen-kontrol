@@ -3,7 +3,8 @@ services:
     name: "kitchen-kontrol-db"
     plan: "starter"
     region: "oregon"
-    ipAllowList: []
+    databaseName: "kitchendb"
+    databaseUser: "kitchenuser"
 
   - type: "web"
     name: "kitchen-kontrol-backend"
