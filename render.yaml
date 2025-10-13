@@ -3,8 +3,6 @@ services:
     name: "kitchen-kontrol-db"
     plan: "starter"
     region: "oregon"
-    databaseName: "kitchendb"
-    databaseUser: "kitchenuser"
 
   - type: "web"
     name: "kitchen-kontrol-backend"
