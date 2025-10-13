@@ -76,7 +76,7 @@
 ✅ docker-compose.yml                # Container orchestration
 ✅ Dockerfile.server                 # Backend container
 ✅ Dockerfile.client                 # Frontend container
-✅ render.yaml                       # Render deployment config (FIXED)
+✅ render.yaml                       # Render deployment config (with auto-linked env vars)
 ✅ migrations/                       # Database migrations
 ✅ scripts/                          # Seed scripts
 ✅ DEPLOYMENT_CHECKLIST.md           # Pre-flight checklist
@@ -89,6 +89,8 @@
 ```
 ✅ README.md                         # Completely rewritten
 ✅ .gitignore                        # Added .env
+✅ .env.example                      # Added REACT_APP_API_URL
+✅ src/store.js                      # Added production API URL support
 ✅ package.json                      # Migration scripts
 ✅ All 14 converted components       # ChiaroscuroCSS styling
 ```

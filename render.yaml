@@ -27,3 +27,9 @@ services:
     publishPath: "build"
     region: "oregon"
     plan: "starter"
+    envVars:
+      - key: "REACT_APP_API_URL"
+        fromService:
+          type: "web_service"
+          name: "kitchen-kontrol-backend"
+          property: "url"

@@ -25,8 +25,11 @@ const useStore = create((set) => ({
   login: async (email, password) => {
     try {
       const apiUrl = (path) => {
-        // when running a static frontend (nginx) on port 3000 in docker-compose,
-        // browser requests to relative /api/* will hit the static server and 404.
+        // In production, use environment variable for backend URL
+        if (process.env.REACT_APP_API_URL) {
+          return `${process.env.REACT_APP_API_URL}${path}`;
+        }
+        // In dev, the React dev server runs on port 3000, but our API is on port 3002.
         // Detect that case and route API calls to the backend on localhost:3002.
         if (typeof window !== 'undefined' && path.startsWith('/api')) {
           const host = window.location.hostname;
@@ -36,9 +39,7 @@ const useStore = create((set) => ({
           }
         }
         return path;
-      };
-
-      const res = await fetch(apiUrl('/api/auth/login'), {
+      };      const res = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -79,6 +80,11 @@ const useStore = create((set) => ({
             options.body = JSON.stringify(body);
         }
         const apiUrl = (path) => {
+          // In production, use environment variable for backend URL
+          if (process.env.REACT_APP_API_URL) {
+            return `${process.env.REACT_APP_API_URL}${path}`;
+          }
+          // In dev, the React dev server runs on port 3000, but our API is on port 3002.
           if (typeof window !== 'undefined' && path.startsWith('/api')) {
             const host = window.location.hostname;
             const port = window.location.port;
