@@ -130,8 +130,8 @@ router.post('/', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, 'log_template_created', $2)
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
     `, [req.user.id, `Created log template: ${name}`]);
     
     res.status(201).json(result.rows[0]);
@@ -201,8 +201,8 @@ router.put('/:id', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, 'log_template_updated', $2)
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
     `, [req.user.id, `Updated ${current.name} to version ${current.version + 1}`]);
     
     await db.query('COMMIT');
@@ -257,7 +257,7 @@ router.delete('/:id', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
+      INSERT INTO audit_log (user_id, action)
       VALUES ($1, 'log_template_deactivated', $2)
     `, [req.user.id, `Deactivated template: ${templateName}`]);
     

@@ -251,9 +251,9 @@ router.post('/', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, 'log_assignment_created', $2)
-    `, [req.user.id, `Assigned "${templateName}" to ${assignedTo}`]);
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
+    `, [req.user.id, `log_assignment_created: Assigned "${templateName}" to ${assignedTo}`]);
     
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -322,8 +322,8 @@ router.put('/:id', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, 'log_assignment_updated', $2)
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
     `, [req.user.id, `Updated assignment ID ${req.params.id}`]);
     
     res.json(result.rows[0]);
@@ -354,8 +354,8 @@ router.delete('/:id', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, 'log_assignment_deleted', $2)
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
     `, [req.user.id, `Deactivated assignment ID ${req.params.id}`]);
     
     res.json({ 

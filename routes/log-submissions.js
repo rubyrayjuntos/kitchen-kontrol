@@ -82,7 +82,7 @@ router.post('/', auth, async (req, res) => {
         UPDATE log_submissions
         SET 
           form_data = $1,
-          status = 'submitted',
+          status = 'completed',
           updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
         RETURNING *
@@ -94,7 +94,7 @@ router.post('/', auth, async (req, res) => {
       result = await db.query(`
         INSERT INTO log_submissions 
           (log_template_id, log_assignment_id, submitted_by, submission_date, form_data, status, template_version)
-        VALUES ($1, $2, $3, $4, $5, 'submitted', $6)
+        VALUES ($1, $2, $3, $4, $5, 'completed', $6)
         RETURNING *
       `, [
         log_template_id,
@@ -110,12 +110,11 @@ router.post('/', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, $2, $3)
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
     `, [
       req.user.id, 
-      'log_submission_' + action,
-      `${action === 'created' ? 'Submitted' : 'Updated'} "${template.name}" for ${today}`
+      `log_submission_${action}: ${action === 'created' ? 'Submitted' : 'Updated'} "${template.name}" for ${today}`
     ]);
     
     res.status(action === 'created' ? 201 : 200).json({
@@ -328,8 +327,8 @@ router.put('/:id', auth, async (req, res) => {
     
     // Audit log
     await db.query(`
-      INSERT INTO audit_log (user_id, action, details)
-      VALUES ($1, 'log_submission_updated', $2)
+      INSERT INTO audit_log (user_id, action)
+      VALUES ($1, $2)
     `, [
       req.user.id,
       `Updated "${existing.template_name}" submission for ${existing.submission_date}`
@@ -359,7 +358,7 @@ router.get('/stats/summary', auth, async (req, res) => {
         lt.category,
         COUNT(ls.id) as total_submissions,
         COUNT(DISTINCT ls.submitted_by) as unique_users,
-        COUNT(CASE WHEN ls.status = 'submitted' THEN 1 END) as completed_count,
+        COUNT(CASE WHEN ls.status = 'completed' THEN 1 END) as completed_count,
         MIN(ls.submission_date) as first_submission,
         MAX(ls.submission_date) as last_submission
       FROM log_templates lt

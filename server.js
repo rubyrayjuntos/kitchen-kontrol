@@ -27,18 +27,25 @@ const absencesRouter = require('./routes/absences');
 app.use('/api/absences', absencesRouter);
 
 // New logs system routes (MUST come BEFORE generic /api/logs)
+console.log('Loading log-templates route...');
 const logTemplatesRouter = require('./routes/log-templates');
 app.use('/api/logs/templates', logTemplatesRouter);
+console.log('✓ Registered /api/logs/templates');
 
+console.log('Loading log-assignments route...');
 const logAssignmentsRouter = require('./routes/log-assignments');
 app.use('/api/logs/assignments', logAssignmentsRouter);
+console.log('✓ Registered /api/logs/assignments');
 
+console.log('Loading log-submissions route...');
 const logSubmissionsRouter = require('./routes/log-submissions');
 app.use('/api/logs/submissions', logSubmissionsRouter);
+console.log('✓ Registered /api/logs/submissions');
 
 // Old logs route (less specific, comes last)
 const logsRouter = require('./routes/logs');
 app.use('/api/logs', logsRouter);
+
 
 const planogramsRouter = require('./routes/planograms');
 app.use('/api/planograms', planogramsRouter);
