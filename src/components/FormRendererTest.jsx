@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FormRenderer from './FormRenderer';
 import { ArrowLeft } from 'lucide-react';
+import useStore from '../store';
 
 /**
  * FormRendererTest - Test page for FormRenderer component
@@ -9,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
  * This verifies that our dynamic form system works with real data
  */
 const FormRendererTest = () => {
+  const { user } = useStore();
   const [template, setTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,7 +21,13 @@ const FormRendererTest = () => {
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = user?.token;
+        
+        if (!token) {
+          setError('Not logged in. Please log in first.');
+          setLoading(false);
+          return;
+        }
         
         const response = await fetch('/api/logs/templates/1', {
           headers: {
@@ -42,14 +50,14 @@ const FormRendererTest = () => {
     };
 
     fetchTemplate();
-  }, []);
+  }, [user?.token]);
 
   const handleSubmit = async (formData) => {
     setSubmitting(true);
     setSubmitResult(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = user?.token;
 
       const response = await fetch('/api/logs/submissions', {
         method: 'POST',
