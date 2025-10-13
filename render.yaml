@@ -24,7 +24,7 @@ services:
           name: "kitchen-kontrol-db"
           property: "connectionString"
 
-  - type: "static_site"
+  - type: "static"
     name: "kitchen-kontrol-frontend"
     branch: "main"
     buildCommand: "npm run build"
