@@ -7,8 +7,8 @@ router.get('/staff', auth, async (req, res, next) => {
     try {
         const users = await new Promise((resolve, reject) => {
             db.all("SELECT id, name FROM users", [], (err, rows) => {
-                if (err) reject(err);
-                resolve(rows);
+                if (err) return reject(err);
+                resolve(rows || []);
             });
         });
 
@@ -17,13 +17,14 @@ router.get('/staff', auth, async (req, res, next) => {
                 SELECT t.id, ls.status
                 FROM tasks t
                 JOIN user_roles ur ON t.role_id = ur.role_id
+                -- log_status.log_id is an integer referencing tasks(id); compare as integers
                 LEFT JOIN log_status ls ON t.id = ls.log_id AND ls.date = CURRENT_DATE
                 WHERE ur.user_id = ?
             `;
             const tasks = await new Promise((resolve, reject) => {
                 db.all(taskQuery, [user.id], (err, rows) => {
-                    if (err) reject(err);
-                    resolve(rows);
+                    if (err) return reject(err);
+                    resolve(rows || []);
                 });
             });
 
@@ -36,7 +37,7 @@ router.get('/staff', auth, async (req, res, next) => {
             `;
             const lastActivity = await new Promise((resolve, reject) => {
                 db.get(lastActivityQuery, [user.id], (err, row) => {
-                    if (err) reject(err);
+                    if (err) return reject(err);
                     resolve(row);
                 });
             });
@@ -44,8 +45,10 @@ router.get('/staff', auth, async (req, res, next) => {
             return {
                 id: user.id,
                 name: user.name,
-                tasksComplete: completionRate,
-                lastActivity: lastActivity ? lastActivity.timestamp : null
+                tasksCompletePercent: Math.round(completionRate * 100) / 100,
+                completedTasks,
+                totalTasks,
+                lastActivity: lastActivity ? new Date(lastActivity.timestamp).toISOString() : null
             };
         }));
 

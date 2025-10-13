@@ -1,0 +1,480 @@
+/* Small overrides to map existing layout to Chiaroscuro variables and classes */
+:root {
+  --muted: rgba(255, 255, 255, 0.08);
+}
+
+/* Utilities */
+.d-flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-neumorphic-embossed {
+  position: relative;
+  text-shadow: var(--text-shadow);
+}
+
+/* Navigation */
+.neumorphic-nav {
+  background: var(--surface-color);
+  color: var(--text-color);
+  box-shadow: var(--neumorphic-shadow);
+  padding: 1rem;
+  margin-bottom: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-brand {
+  margin-right: 2rem;
+}
+
+.navbar-nav {
+  display: flex;
+  gap: 1rem;
+  margin-right: auto;
+}
+
+.navbar-utils {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Spacing */
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+/* Typography */
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Components */
+.neumorphic-button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  background: var(--surface-color);
+  color: var(--text-color);
+  box-shadow: var(--neumorphic-shadow);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.neumorphic-button:hover {
+  box-shadow: var(--neumorphic-shadow-hover);
+}
+
+.neumorphic-button.active {
+  box-shadow: var(--neumorphic-shadow-inset);
+  background: var(--surface-color-darker);
+}
+
+.neumorphic-inset {
+  box-shadow: var(--neumorphic-shadow-inset);
+  background: var(--surface-color-darker);
+}
+
+.navbar-utils {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.neumorphic-nav .neumorphic-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.neumorphic-nav .btn-ghost {
+  background: transparent;
+  box-shadow: none;
+}
+
+.neumorphic-nav .btn-ghost:hover {
+  background: var(--surface-color);
+  box-shadow: var(--neumorphic-shadow);
+}
+
+.neumorphic-nav .btn-primary {
+  background: var(--accent-color);
+  color: var(--text-color);
+  box-shadow: var(--neumorphic-shadow);
+}
+
+.time-display {
+  text-align: right;
+  padding: 0.5rem;
+}
+
+.time-display .font-semibold {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.time-display .text-sm {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+/* Cards */
+.neumorphic-card {
+  background: var(--surface-color);
+  border-radius: 15px;
+  box-shadow: var(--neumorphic-shadow);
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.neumorphic-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Buttons */
+.neumorphic-button {
+  background: var(--surface-color);
+  border: none;
+  border-radius: 8px;
+  box-shadow: var(--neumorphic-shadow);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  color: var(--text-color);
+}
+
+.neumorphic-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--neumorphic-shadow-hover);
+}
+
+.neumorphic-button:active {
+  transform: translateY(0);
+  box-shadow: var(--neumorphic-shadow-pressed);
+}
+
+.neumorphic-button.btn-primary {
+  background: var(--accent-color);
+}
+
+.neumorphic-button.btn-ghost {
+  background: transparent;
+  box-shadow: none;
+}
+
+.neumorphic-button.btn-ghost:hover {
+  background: var(--surface-color);
+  box-shadow: var(--neumorphic-shadow);
+}
+
+/* Progress */
+.neumorphic-progress-bar {
+  background: var(--surface-color);
+  border-radius: 10px;
+  box-shadow: var(--neumorphic-shadow-inset);
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.neumorphic-progress-bar .progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+/* Icons */
+.neumorphic-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface-color);
+  box-shadow: var(--neumorphic-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Typography */
+.text-neumorphic-embossed {
+  color: var(--text-color);
+  text-shadow: var(--text-shadow-embossed);
+}
+
+/* Form Components */
+.form-field {
+  margin-bottom: var(--spacing-4);
+}
+
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-2);
+}
+
+.form-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--spacing-1);
+}
+
+.neumorphic-input,
+.neumorphic-select,
+.neumorphic-textarea {
+  width: 100%;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  box-shadow: inset -2px -2px 5px var(--shadow-light),
+              inset 2px 2px 5px var(--shadow-dark);
+  transition: all 0.2s ease;
+}
+
+.neumorphic-input:focus,
+.neumorphic-select:focus,
+.neumorphic-textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: inset -2px -2px 5px var(--shadow-light),
+              inset 2px 2px 5px var(--shadow-dark),
+              0 0 0 3px var(--accent-primary-alpha);
+}
+
+.neumorphic-input.error,
+.neumorphic-select.error,
+.neumorphic-textarea.error {
+  border-color: var(--error);
+  box-shadow: inset -2px -2px 5px var(--shadow-light),
+              inset 2px 2px 5px var(--shadow-dark),
+              0 0 0 3px var(--error-alpha);
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.input-addon {
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+}
+
+.neumorphic-checkbox,
+.neumorphic-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  cursor: pointer;
+}
+
+.checkbox-box,
+.radio-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  box-shadow: -2px -2px 4px var(--shadow-light),
+              2px 2px 4px var(--shadow-dark);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.radio-circle {
+  border-radius: 50%;
+}
+
+.neumorphic-checkbox input:checked + .checkbox-box,
+.neumorphic-radio input:checked + .radio-circle {
+  background: var(--accent-primary);
+  box-shadow: inset -2px -2px 4px rgba(255,255,255,0.1),
+              inset 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.neumorphic-checkbox input,
+.neumorphic-radio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox-label,
+.radio-label {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+/* Modal specific styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  margin: var(--spacing-4);
+  animation: modal-in 0.3s ease-out;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Progressive Enhancement */
+@supports not (backdrop-filter: blur(4px)) {
+  .modal-backdrop {
+    background: rgba(0,0,0,0.8);
+  }
+}
+.p-6{ padding: 1.5rem !important; }
+.p-4{ padding: 1rem !important; }
+.m-2{ margin: .5rem !important; }
+
+/* ensure text contrast for small helper text */
+.text-muted{ color: rgba(255,255,255,0.75); }
+
+/* make links/buttons look like chiaroscuro buttons where used */
+button.btn{ cursor: pointer; }
+
+/* Dashboard layout specific adjustments to mirror design mock */
+.dashboard-wrapper{ max-width:1200px; margin:0 auto; }
+.phase-row{ display:flex; gap:12px; align-items:flex-start; padding:12px; }
+.phase-timeline{ display:flex; gap:12px; align-items:stretch; }
+.phase{ flex: 1 1 0; min-width:120px; }
+.two-column{ display:grid; grid-template-columns: 2fr 1fr; gap:16px; }
+.quick-actions-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+.quick-card{ border-radius: .5rem; padding: 20px; background: var(--bg-elevated); color: var(--text-primary); box-shadow: -6px -6px 12px var(--shadow-light), 6px 6px 12px var(--shadow-dark); text-align:center; }
+.quick-card .icon{ font-size: 20px; margin-bottom: 8px; display:block; }
+
+/* Professional theme tweaks for contrast */
+[data-theme=professional] { --bg-primary: #f4f6f8; --bg-elevated: #ffffff; --text-primary: #0b1320; --accent-primary: #0ea5a3; }
+[data-theme=professional] .nav{ background: var(--bg-primary); color: var(--text-primary); }
+[data-theme=professional] .card{ background: var(--bg-elevated); color: var(--text-primary); }
+
+/* make small helper text darker in professional */
+.phase-time, .text-muted { color: rgba(11,19,32,0.65); }
+
+/* Make dashboard expand to full viewport width (edge-to-edge layout) */
+.dashboard-wrapper{ max-width: none; width: 100%; padding: 24px; box-sizing: border-box; }
+
+/* Modal styles: centered dialog, blurred backdrop, block interaction behind */
+.kk-modal-backdrop{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(11,19,32,0.35);
+}
+.kk-modal{
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-radius: 12px;
+  width: min(920px, calc(100% - 48px));
+  max-height: calc(100vh - 80px);
+  overflow: auto;
+  box-shadow: -12px -12px 24px var(--shadow-light), 12px 12px 24px var(--shadow-dark);
+  padding: 18px;
+}
+.kk-modal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; }
+.kk-modal-title{ font-size: 1.125rem; font-weight: 600; }
+.kk-modal-close{ background: transparent; border: none; color: var(--text-primary); cursor: pointer; }
+.kk-modal-body{ padding-top: 6px; }
+
+
+/* progress visuals */
+.progress-track{ background: rgba(0,0,0,0.05); height: 8px; border-radius: 8px; overflow: hidden; }
+.progress-fill{ background: var(--accent-primary); height: 100%; border-radius: 8px; }
+
+/* Roles and Absences */
+.roles-list .role-item{ display:flex; align-items:center; justify-content:space-between; padding: .75rem; background: var(--bg-primary); border-radius: .5rem; border: 1px solid rgba(0,0,0,0.04); }
+.roles-list .role-item + .role-item{ margin-top: .5rem; }
+.absences-card{ padding: 1rem; background: var(--bg-elevated); border-radius: .5rem; }
+
+/* Quick actions grid mapping */
+.quick-actions-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.quick-actions-grid .quick-card{ display:flex; flex-direction:column; align-items:center; justify-content:center; }
+

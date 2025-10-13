@@ -3,6 +3,8 @@ const router = express.Router();
 const db = require('../db.js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
 const { body, validationResult } = require('express-validator');
 
 router.post("/login",
@@ -27,7 +29,7 @@ router.post("/login",
             const isMatch = await bcrypt.compare(password, user.password);
             console.log('Password match:', isMatch);
             if (isMatch) {
-                const token = jwt.sign({ id: user.id, role: user.role }, 'your-secret-key', { expiresIn: '1h' });
+                const token = jwt.sign({ id: user.id, permissions: user.permissions }, JWT_SECRET, { expiresIn: '1h' });
                 db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,
                     [user.id, `User ${user.name} logged in`],
                     (err) => { if (err) next(err); }

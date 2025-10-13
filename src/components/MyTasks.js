@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import useStore from '../store';
 
 const MyTasks = () => {
-    const { user, tasks, fetchTasks, completedTasks, handleTaskCompletion } = useStore();
+    const { tasks, fetchTasks, completedTasks, handleTaskCompletion } = useStore();
 
     useEffect(() => {
         fetchTasks();

@@ -98,7 +98,7 @@ router.get("/:id/tasks", auth, (req, res, next) => {
         SELECT t.id, t.name, t.description, ls.status
         FROM tasks t
         JOIN user_roles ur ON t.role_id = ur.role_id
-        LEFT JOIN log_status ls ON t.id = ls.log_id AND ls.date = CURRENT_DATE
+    LEFT JOIN log_status ls ON t.id = ls.log_id AND ls.date = CURRENT_DATE
         WHERE ur.user_id = ?
     `;
     db.all(query, [req.params.id], (err, rows) => {

@@ -15,7 +15,7 @@ router.post("/:id/complete", auth,
     const { date, status } = req.body;
     db.run(
         `INSERT INTO log_status (log_id, date, status) VALUES (?, ?, ?)`,
-        [req.params.id, date, status],
+        [parseInt(req.params.id, 10) || null, date, status],
         function (err) {
             if (err) {
                 next(err);

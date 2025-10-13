@@ -1,4 +1,4 @@
-const seedDatabase = (db) => {
+const seedDatabase = async (db) => {
     const phases = [
         { id: 'prep', title: 'Prep', time: '8:00 AM', status: 'completed' },
         { id: 'breakfast', title: 'Breakfast', time: '9:00 AM', status: 'active' },
@@ -97,67 +97,128 @@ const seedDatabase = (db) => {
             })
         }
     ];
+    // determine whether db is a pg pool adapter (has query) or sqlite3 (has serialize/run/get)
+    const isPg = !!db.query;
 
-    db.serialize(() => {
-        db.get("SELECT COUNT(*) as count FROM phases", (err, row) => {
-            if (row.count === 0) {
-                const phaseStmt = db.prepare("INSERT INTO phases (id, title, time, status) VALUES (?, ?, ?, ?)");
-                phases.forEach(phase => phaseStmt.run(phase.id, phase.title, phase.time, phase.status));
-                phaseStmt.finalize();
+    if (isPg) {
+        try {
+            const { rows } = await db.query('SELECT COUNT(*)::int AS count FROM phases');
+            if (rows[0].count === 0) {
+                // Insert phases
+                for (const phase of phases) {
+                    await db.query('INSERT INTO phases (id, title, time, status) VALUES ($1, $2, $3, $4)', [phase.id, phase.title, phase.time, phase.status]);
+                }
 
-                const roleStmt = db.prepare("INSERT INTO roles (id, name) VALUES (?, ?)");
-                roles.forEach(role => roleStmt.run(role.id, role.name));
-                roleStmt.finalize();
+                // roles
+                for (const role of roles) {
+                    await db.query('INSERT INTO roles (id, name) VALUES ($1, $2)', [role.id, role.name]);
+                }
 
-                const rolePhaseStmt = db.prepare("INSERT INTO role_phases (role_id, phase_id) VALUES (?, ?)");
-                rolePhases.forEach(rp => rolePhaseStmt.run(rp.role_id, rp.phase_id));
-                rolePhaseStmt.finalize();
+                // role_phases
+                for (const rp of rolePhases) {
+                    await db.query('INSERT INTO role_phases (role_id, phase_id) VALUES ($1, $2)', [rp.role_id, rp.phase_id]);
+                }
 
-                const taskStmt = db.prepare("INSERT INTO tasks (name, description, role_id) VALUES (?, ?, ?)");
-                tasks.forEach(task => taskStmt.run(task.name, task.description, task.role_id));
-                taskStmt.finalize();
+                // tasks
+                for (const task of tasks) {
+                    await db.query('INSERT INTO tasks (name, description, role_id) VALUES ($1, $2, $3)', [task.name, task.description, task.role_id]);
+                }
 
-                const trainingStmt = db.prepare("INSERT INTO training_modules (id, title, description, duration, required, content) VALUES (?, ?, ?, ?, ?, ?)");
-                trainingModules.forEach(module => trainingStmt.run(module.id, module.title, module.description, module.duration, module.required, module.content));
-                trainingStmt.finalize();
+                // training modules
+                for (const module of trainingModules) {
+                    await db.query('INSERT INTO training_modules (id, title, description, duration, required, content) VALUES ($1, $2, $3, $4, $5, $6)', [module.id, module.title, module.description, module.duration, module.required, module.content]);
+                }
 
-                const ingredientStmt = db.prepare("INSERT INTO ingredients (name, quantity, unit, category, minStock) VALUES (?, ?, ?, ?, ?)");
                 const ingredients = [
                     { id: 1, name: 'Ground Beef', quantity: 15, unit: 'lbs', category: 'meat', minStock: 5 },
                     { id: 2, name: 'Burger Buns', quantity: 24, unit: 'pcs', category: 'bread', minStock: 10 },
                     { id: 3, name: 'Lettuce', quantity: 3, unit: 'heads', category: 'produce', minStock: 5 },
                     { id: 4, name: 'Tomatoes', quantity: 8, unit: 'lbs', category: 'produce', minStock: 3 },
                     { id: 5, name: 'Pears', quantity: 12, unit: 'pcs', category: 'fruit', minStock: 5 },
-                    { id: 6, name: 'Peaches', quantity: 18, unit: 'pcs', category: 'fruit', minStock: 5 },
+                    { id: 6, name: 'Peaches', quantity: 18, unit: 'pcs', category: 'fruit', minStock: 5 }
                 ];
-                ingredients.forEach(ingredient => ingredientStmt.run(ingredient.name, ingredient.quantity, ingredient.unit, ingredient.category, ingredient.minStock));
-                ingredientStmt.finalize();
+                for (const ing of ingredients) {
+                    await db.query('INSERT INTO ingredients (name, quantity, unit, category, minStock) VALUES ($1, $2, $3, $4, $5)', [ing.name, ing.quantity, ing.unit, ing.category, ing.minStock]);
+                }
 
-                const userStmt = db.prepare("INSERT INTO users (name, email, password, permissions) VALUES (?, ?, ?, ?)");
                 const bcrypt = require('bcryptjs');
                 const hashedPassword = bcrypt.hashSync('password', 10);
-                userStmt.run('Admin', 'admin@example.com', hashedPassword, 'admin', function(err) {
-                    if (err) {
-                        console.error(err.message);
-                        return;
-                    }
-                    const userId = this.lastID;
-                    const userRolesStmt = db.prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
-                    userRolesStmt.run(userId, 'head-chef');
-                    userRolesStmt.finalize();
+                const userRes = await db.query('INSERT INTO users (name, email, password, permissions) VALUES ($1, $2, $3, $4) RETURNING id', ['Admin', 'admin@example.com', hashedPassword, 'admin']);
+                const userId = userRes.rows[0].id;
+                await db.query('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)', [userId, 'head-chef']);
+                await db.query('INSERT INTO absences (user_id, start_date, end_date, reason, approved, approvalDate) VALUES ($1, $2, $3, $4, $5, $6)', [userId, '2025-10-10', '2025-10-12', 'Vacation', true, '2025-10-01']);
 
-                    const absenceStmt = db.prepare("INSERT INTO absences (user_id, start_date, end_date, reason, approved, approvalDate) VALUES (?, ?, ?, ?, ?, ?)");
-                    absenceStmt.run(userId, '2025-10-10', '2025-10-12', 'Vacation', true, '2025-10-01');
-                    absenceStmt.finalize();
-                });
-                userStmt.finalize();
-
-                console.log("Database seeded with initial data.");
+                console.log('Database seeded with initial data (Postgres).');
             }
+        } catch (err) {
+            console.error('Error seeding Postgres database:', err);
+            throw err;
+        }
+    } else {
+        // sqlite path (preserve existing behavior)
+        db.serialize(() => {
+            db.get('SELECT COUNT(*) as count FROM phases', (err, row) => {
+                if (err) {
+                    console.error('Error checking phases count (SQLite):', err);
+                    return;
+                }
+                if (row.count === 0) {
+                    const phaseStmt = db.prepare('INSERT INTO phases (id, title, time, status) VALUES (?, ?, ?, ?)');
+                    phases.forEach(phase => phaseStmt.run(phase.id, phase.title, phase.time, phase.status));
+                    phaseStmt.finalize();
+
+                    const roleStmt = db.prepare('INSERT INTO roles (id, name) VALUES (?, ?)');
+                    roles.forEach(role => roleStmt.run(role.id, role.name));
+                    roleStmt.finalize();
+
+                    const rolePhaseStmt = db.prepare('INSERT INTO role_phases (role_id, phase_id) VALUES (?, ?)');
+                    rolePhases.forEach(rp => rolePhaseStmt.run(rp.role_id, rp.phase_id));
+                    rolePhaseStmt.finalize();
+
+                    const taskStmt = db.prepare('INSERT INTO tasks (name, description, role_id) VALUES (?, ?, ?)');
+                    tasks.forEach(task => taskStmt.run(task.name, task.description, task.role_id));
+                    taskStmt.finalize();
+
+                    const trainingStmt = db.prepare('INSERT INTO training_modules (id, title, description, duration, required, content) VALUES (?, ?, ?, ?, ?, ?)');
+                    trainingModules.forEach(module => trainingStmt.run(module.id, module.title, module.description, module.duration, module.required, module.content));
+                    trainingStmt.finalize();
+
+                    const ingredientStmt = db.prepare('INSERT INTO ingredients (name, quantity, unit, category, minStock) VALUES (?, ?, ?, ?, ?)');
+                    const ingredients = [
+                        { id: 1, name: 'Ground Beef', quantity: 15, unit: 'lbs', category: 'meat', minStock: 5 },
+                        { id: 2, name: 'Burger Buns', quantity: 24, unit: 'pcs', category: 'bread', minStock: 10 },
+                        { id: 3, name: 'Lettuce', quantity: 3, unit: 'heads', category: 'produce', minStock: 5 },
+                        { id: 4, name: 'Tomatoes', quantity: 8, unit: 'lbs', category: 'produce', minStock: 3 },
+                        { id: 5, name: 'Pears', quantity: 12, unit: 'pcs', category: 'fruit', minStock: 5 },
+                        { id: 6, name: 'Peaches', quantity: 18, unit: 'pcs', category: 'fruit', minStock: 5 }
+                    ];
+                    ingredients.forEach(ingredient => ingredientStmt.run(ingredient.name, ingredient.quantity, ingredient.unit, ingredient.category, ingredient.minStock));
+                    ingredientStmt.finalize();
+
+                    const userStmt = db.prepare('INSERT INTO users (name, email, password, permissions) VALUES (?, ?, ?, ?)');
+                    const bcrypt = require('bcryptjs');
+                    const hashedPassword = bcrypt.hashSync('password', 10);
+                    userStmt.run('Admin', 'admin@example.com', hashedPassword, 'admin', function (err) {
+                        if (err) {
+                            console.error(err.message);
+                            return;
+                        }
+                        const userId = this.lastID;
+                        const userRolesStmt = db.prepare('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)');
+                        userRolesStmt.run(userId, 'head-chef');
+                        userRolesStmt.finalize();
+
+                        const absenceStmt = db.prepare('INSERT INTO absences (user_id, start_date, end_date, reason, approved, approvalDate) VALUES (?, ?, ?, ?, ?, ?)');
+                        absenceStmt.run(userId, '2025-10-10', '2025-10-12', 'Vacation', true, '2025-10-01');
+                        absenceStmt.finalize();
+                    });
+                    userStmt.finalize();
+
+                    console.log('Database seeded with initial data (SQLite).');
+                }
+            });
         });
-    });
+    }
 };
-
-
 
 module.exports = seedDatabase;

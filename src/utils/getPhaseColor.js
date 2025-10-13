@@ -1,12 +1,12 @@
 export const getPhaseColor = (status) => {
     switch (status) {
         case 'completed':
-            return 'border-green-400 bg-green-50';
+            return 'phase-completed';
         case 'active':
-            return 'border-blue-400 bg-blue-50';
+            return 'phase-active';
         case 'pending':
-            return 'border-gray-400 bg-gray-50';
+            return 'phase-pending';
         default:
-            return 'border-gray-400 bg-gray-50';
+            return 'phase-pending';
     }
 };

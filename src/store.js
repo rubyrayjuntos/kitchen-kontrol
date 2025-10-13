@@ -24,7 +24,21 @@ const useStore = create((set) => ({
 
   login: async (email, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const apiUrl = (path) => {
+        // when running a static frontend (nginx) on port 3000 in docker-compose,
+        // browser requests to relative /api/* will hit the static server and 404.
+        // Detect that case and route API calls to the backend on localhost:3002.
+        if (typeof window !== 'undefined' && path.startsWith('/api')) {
+          const host = window.location.hostname;
+          const port = window.location.port;
+          if ((host === 'localhost' || host === '127.0.0.1') && port === '3000') {
+            return `http://localhost:3002${path}`;
+          }
+        }
+        return path;
+      };
+
+      const res = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -64,7 +78,18 @@ const useStore = create((set) => ({
         if (body) {
             options.body = JSON.stringify(body);
         }
-        const res = await fetch(endpoint, options);
+        const apiUrl = (path) => {
+          if (typeof window !== 'undefined' && path.startsWith('/api')) {
+            const host = window.location.hostname;
+            const port = window.location.port;
+            if ((host === 'localhost' || host === '127.0.0.1') && port === '3000') {
+              return `http://localhost:3002${path}`;
+            }
+          }
+          return path;
+        };
+
+        const res = await fetch(apiUrl(endpoint), options);
         const data = await res.json();
         return data;
     } catch (error) {
@@ -79,18 +104,34 @@ const useStore = create((set) => ({
   },
 
   addUser: async (user) => {
-    await useStore.getState().makeApiCall('/api/users', 'POST', user);
-    useStore.getState().fetchUsers();
+    try {
+      await useStore.getState().makeApiCall('/api/users', 'POST', user);
+      await useStore.getState().fetchUsers();
+      return { success: true };
+    } catch (error) {
+      // Re-throw so component can handle it
+      throw error;
+    }
   },
 
   updateUser: async (user) => {
-    await useStore.getState().makeApiCall(`/api/users/${user.id}`, 'PUT', user);
-    useStore.getState().fetchUsers();
+    try {
+      await useStore.getState().makeApiCall(`/api/users/${user.id}`, 'PUT', user);
+      await useStore.getState().fetchUsers();
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
   },
 
   deleteUser: async (userId) => {
-    await useStore.getState().makeApiCall(`/api/users/${userId}`, 'DELETE');
-    useStore.getState().fetchUsers();
+    try {
+      await useStore.getState().makeApiCall(`/api/users/${userId}`, 'DELETE');
+      await useStore.getState().fetchUsers();
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
   },
 
   addRole: async (role) => {

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./db.js');
@@ -6,10 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
 
-app.get("/api", (req, res) => {
-    res.json({ message: "Kitchen Kontrol API is running!" });
+app.get('/api', (req, res) => {
+    res.json({ message: 'Kitchen Kontrol API is running!' });
 });
 
 
@@ -62,8 +63,31 @@ app.use('/api/performance', performanceRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+    console.error('Error caught by middleware:', err.stack);
+    
+    // Check if it's a database constraint error
+    if (err.code === '23505') { // PostgreSQL unique violation
+        return res.status(409).json({ 
+            error: 'Duplicate entry', 
+            message: err.detail || 'A record with this value already exists',
+            field: err.constraint 
+        });
+    }
+    
+    // Check if it's a validation error
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({ 
+            error: 'Validation failed', 
+            message: err.message 
+        });
+    }
+    
+    // Generic error response
+    res.status(err.status || 500).json({ 
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
 });
 
 // We will add more specific API endpoints here later

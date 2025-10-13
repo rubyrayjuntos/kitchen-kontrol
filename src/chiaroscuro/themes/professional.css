@@ -1,0 +1,86 @@
+/* ==============================================
+   ChiaroscuroCSS - Professional Theme
+   ============================================== */
+
+[data-theme="professional"] {
+  /* === Primary Colors === */
+  --bg-primary: #263238;
+  --bg-secondary: #1e2a2e;
+  --bg-tertiary: #1c272d;
+  --bg-elevated: #2e3940;
+  
+  /* === Text Colors === */
+  --text-primary: #eceff1;
+  --text-secondary: #b0bec5;
+  --text-tertiary: #90a4ae;
+  --text-disabled: #78909c;
+  
+  /* === Accent Colors === */
+  --accent-primary: #607d8b;
+  --accent-secondary: #90a4ae;
+  --accent-tertiary: #546e7a;
+  --accent-success: #4caf50;
+  --accent-warning: #ff9800;
+  --accent-error: #f44336;
+  --accent-info: #2196f3;
+  
+  /* === Borders === */
+  --border-primary: #455a64;
+  --border-secondary: #37474f;
+  --border-accent: var(--accent-primary);
+  
+  /* === Shadows === */
+  --shadow-light: rgba(96, 125, 139, 0.4);
+  --shadow-dark: rgba(28, 39, 45, 0.8);
+  --shadow-accent: rgba(96, 125, 139, 0.4);
+  
+  /* === Theme-specific Properties === */
+  --theme-glow: 0 0 12px rgba(96, 125, 139, 0.6);
+  --theme-glow-intense: 0 0 24px rgba(96, 125, 139, 0.8);
+  --theme-gradient-start: #607d8b;
+  --theme-gradient-end: #90a4ae;
+}
+
+/* === Professional Theme Enhancements === */
+[data-theme="professional"] .neumorphic-accent {
+  box-shadow: 
+    var(--theme-glow),
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+}
+
+[data-theme="professional"] .btn:focus {
+  box-shadow: 
+    0 0 0 var(--focus-ring-offset) var(--bg-primary),
+    0 0 0 calc(var(--focus-ring-offset) + var(--focus-ring-width)) var(--accent-primary);
+}
+
+[data-theme="professional"] .theme-gradient {
+  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
+}
+
+[data-theme="professional"] .text-theme {
+  color: var(--accent-primary);
+}
+
+[data-theme="professional"] .border-theme {
+  border-color: var(--accent-primary);
+}
+
+[data-theme="professional"] .bg-theme {
+  background-color: var(--accent-primary);
+}
+
+/* === Professional Subtle Effects === */
+[data-theme="professional"] .subtle-glow {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: box-shadow var(--transition-normal);
+}
+
+[data-theme="professional"] .subtle-glow:hover {
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.16),
+    0 3px 6px rgba(0, 0, 0, 0.23);
+}

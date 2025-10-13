@@ -8,12 +8,10 @@ import {
   Plus,
   Copy,
   Trash2,
-  Droplets,
   Box,
   Save,
   ThermometerSun,
   ThermometerSnowflake,
-  AlertCircle,
 } from "lucide-react";
 import useStore from "../store";
 
@@ -186,15 +184,15 @@ const PDFModal = React.memo(function PDFModal({ onClose, wells, pdfNotes, setPdf
   );
 });
 
-// Simple external legend component
-const WellLegend = () => (
+// Simple external legend component (currently unused)
+/* const WellLegend = () => (
   <div className="flex items-center gap-3 text-xs text-slate-600">
     <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-500 inline-block" /> full</span>
     <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-600 inline-block" /> metal half</span>
     <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-400 inline-block" /> plastic half</span>
     <span className="inline-flex items-center gap-1"><Droplets size={14} /> hot/cold frame</span>
   </div>
-);
+); */
 
 
 // Safer uid with crypto fallback
@@ -209,9 +207,7 @@ const uid = () => {
 /** ---------- Component ---------- */
 const PlanogramView = () => {
   const {
-    planograms,
     selectedPlanogram,
-    fetchPlanograms,
     fetchPlanogramByDate,
     savePlanogram,
   } = useStore();
@@ -226,6 +222,10 @@ const PlanogramView = () => {
 
   const [past, setPast] = useState([]);
   const [future, setFuture] = useState([]);
+
+  // refs to hold undo/redo so keyboard handler doesn't depend on functions defined later
+  const undoRef = useRef(null);
+  const redoRef = useRef(null);
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
 
@@ -271,7 +271,7 @@ const PlanogramView = () => {
       const mod = e.metaKey || e.ctrlKey;
       if (!inField && mod && e.key.toLowerCase() === "z") {
         e.preventDefault();
-        e.shiftKey ? redo() : undo();
+        if (e.shiftKey) redoRef.current && redoRef.current(); else undoRef.current && undoRef.current();
       }
       if (e.key === "Escape" && showPDF) {
         e.preventDefault();
@@ -324,6 +324,7 @@ const PlanogramView = () => {
     setWells(nextState);
   }, [wells]);
 
+  // Undo/redo operate on state via functional updates; they don't need external deps
   const undo = React.useCallback(() => {
     setPast(prevPast => {
       if (!prevPast.length) return prevPast;
@@ -334,7 +335,7 @@ const PlanogramView = () => {
       });
       return prevPast.slice(0, -1);
     });
-  }, [past]);
+  }, []);
 
   const redo = React.useCallback(() => {
     setFuture(prevFuture => {
@@ -346,7 +347,11 @@ const PlanogramView = () => {
       });
       return prevFuture.slice(1);
     });
-  }, [future]);
+  }, []);
+
+  // expose into refs for keyboard handler
+  undoRef.current = undo;
+  redoRef.current = redo;
 
   // ---------- Core Logic ----------
   const getPanColor = useCallback((pan) => {
@@ -364,36 +369,7 @@ const PlanogramView = () => {
     return false;
   }, []);
 
-  const handleDragStart = useCallback((item, type) => {
-    setDraggedItem({ ...item, type });
-  }, []);
-
-  const handleDragOver = useCallback((e, wellId) => {
-    e.preventDefault();
-    if (!draggedItem) return;
-    if (draggedItem.type === "pan") {
-      const well = wells.find(w => w.id === wellId);
-      if (well) setDragOverWell({ id: wellId, canDrop: canPlacePan(well, draggedItem) });
-    } else {
-      setDragOverWell({ id: wellId, canDrop: true });
-    }
-  }, [draggedItem, wells, canPlacePan]);
-
-  const handleDrop = useCallback((e, wellId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (draggedItem?.type === "pan") {
-      const well = wells.find(w => w.id === wellId);
-      if (well && canPlacePan(well, draggedItem)) {
-        placePan(wellId, draggedItem);
-      }
-    } else if (draggedItem?.type === "utensil") {
-      placeUtensil(wellId, draggedItem);
-    }
-    setDragOverWell(null);
-    setDraggedItem(null);
-  }, [draggedItem, wells, canPlacePan]);
-
+  // placePan/placeUtensil are used by drop handlers; define them first to keep deps accurate
   const placePan = useCallback((wellId, pan) => {
     commit(
       wells.map(well => {
@@ -413,6 +389,37 @@ const PlanogramView = () => {
       })
     );
   }, [commit, wells]);
+
+  const handleDragStart = useCallback((item, type) => {
+    setDraggedItem({ ...item, type });
+  }, []);
+
+  const handleDragOver = useCallback((e, wellId) => {
+    e.preventDefault();
+    if (!draggedItem) return;
+    if (draggedItem.type === "pan") {
+      const well = wells.find(w => w.id === wellId);
+      if (well) setDragOverWell({ id: wellId, canDrop: canPlacePan(well, draggedItem) });
+    } else {
+      setDragOverWell({ id: wellId, canDrop: true });
+    }
+  }, [draggedItem, wells, canPlacePan]);
+
+
+  const handleDrop = useCallback((e, wellId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggedItem?.type === "pan") {
+      const well = wells.find(w => w.id === wellId);
+      if (well && canPlacePan(well, draggedItem)) {
+        placePan(wellId, draggedItem);
+      }
+    } else if (draggedItem?.type === "utensil") {
+      placeUtensil(wellId, draggedItem);
+    }
+    setDragOverWell(null);
+    setDraggedItem(null);
+  }, [draggedItem, wells, canPlacePan, placePan, placeUtensil]);
 
   const removeItem = useCallback((wellId, itemId, itemType) => {
     commit(

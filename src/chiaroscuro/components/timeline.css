@@ -1,0 +1,49 @@
+.phases-timeline {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.phase-card {
+  flex: 0 0 auto;
+  min-width: 200px;
+  padding: 1rem;
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--neumorphic-shadow);
+}
+
+.phase-card.active {
+  box-shadow: var(--neumorphic-shadow-inset);
+  border: 2px solid var(--primary-color);
+}
+
+.phase-card .phase-time {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.phase-card .phase-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.phase-progress {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-color-darker);
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  box-shadow: var(--neumorphic-shadow-inset);
+}
+
+.phase-progress-bar {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}

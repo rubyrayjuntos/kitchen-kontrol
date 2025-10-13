@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Save, ArrowLeft } from 'lucide-react';
 import useStore from '../store';
 
 const LogsView = () => {
@@ -84,34 +84,50 @@ const LogsView = () => {
       switch (selectedLog.id) {
         case 'equipment-temps':
           return (
-            <div className="space-y-4">
-              <div className="grid grid-cols-4 gap-4 font-semibold border-b pb-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '2fr 1fr 1fr 1fr', 
+                gap: 'var(--spacing-4)', 
+                fontWeight: '600',
+                borderBottom: '2px solid var(--border-primary)',
+                paddingBottom: 'var(--spacing-2)',
+                fontSize: 'var(--font-size-sm)'
+              }}>
                 <div>Equipment</div>
                 <div>Morning Temp</div>
                 <div>Afternoon Temp</div>
                 <div>Initial</div>
               </div>
               {currentLog.entries.map((entry, index) => (
-                <div key={index} className="grid grid-cols-4 gap-4">
-                  <div className="flex items-center">{entry.equipment}</div>
+                <div key={index} style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr', 
+                  gap: 'var(--spacing-4)',
+                  alignItems: 'center'
+                }}>
+                  <div className="font-medium">{entry.equipment}</div>
                   <input
                     type="text"
                     placeholder="°F"
-                    className="border rounded p-2"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-2)', fontSize: 'var(--font-size-sm)' }}
                     value={entry.morning}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'morning', e.target.value)}
                   />
                   <input
                     type="text"
                     placeholder="°F"
-                    className="border rounded p-2"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-2)', fontSize: 'var(--font-size-sm)' }}
                     value={entry.afternoon}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'afternoon', e.target.value)}
                   />
                   <input
                     type="text"
                     placeholder="Initials"
-                    className="border rounded p-2"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-2)', fontSize: 'var(--font-size-sm)' }}
                     value={entry.initial}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'initial', e.target.value)}
                   />
@@ -122,8 +138,16 @@ const LogsView = () => {
         
         case 'food-temps':
           return (
-            <div className="space-y-4">
-              <div className="grid grid-cols-7 gap-2 font-semibold border-b pb-2 text-sm">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1.5fr repeat(6, 1fr)', 
+                gap: 'var(--spacing-2)', 
+                fontWeight: '600',
+                borderBottom: '2px solid var(--border-primary)',
+                paddingBottom: 'var(--spacing-2)',
+                fontSize: 'var(--font-size-xs)'
+              }}>
                 <div>Food Item</div>
                 <div>Arrival</div>
                 <div>Pre-Service</div>
@@ -133,47 +157,58 @@ const LogsView = () => {
                 <div>Initial</div>
               </div>
               {currentLog.entries.map((entry, index) => (
-                <div key={index} className="grid grid-cols-7 gap-2">
-                  <div className="flex items-center text-sm">{entry.item}</div>
+                <div key={index} style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1.5fr repeat(6, 1fr)', 
+                  gap: 'var(--spacing-2)',
+                  alignItems: 'center'
+                }}>
+                  <div className="font-medium" style={{ fontSize: 'var(--font-size-sm)' }}>{entry.item}</div>
                   <input
                     type="text"
                     placeholder="°F"
-                    className="border rounded p-1 text-sm"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-1)', fontSize: 'var(--font-size-xs)' }}
                     value={entry.arrival}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'arrival', e.target.value)}
                   />
                   <input
                     type="text"
                     placeholder="°F"
-                    className="border rounded p-1 text-sm"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-1)', fontSize: 'var(--font-size-xs)' }}
                     value={entry.preService}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'preService', e.target.value)}
                   />
                   <input
                     type="text"
                     placeholder="°F"
-                    className="border rounded p-1 text-sm"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-1)', fontSize: 'var(--font-size-xs)' }}
                     value={entry.midService}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'midService', e.target.value)}
                   />
                   <input
                     type="number"
                     placeholder="Count"
-                    className="border rounded p-1 text-sm"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-1)', fontSize: 'var(--font-size-xs)' }}
                     value={entry.portions}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'portions', e.target.value)}
                   />
                   <input
                     type="number"
                     placeholder="Count"
-                    className="border rounded p-1 text-sm"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-1)', fontSize: 'var(--font-size-xs)' }}
                     value={entry.waste}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'waste', e.target.value)}
                   />
                   <input
                     type="text"
                     placeholder="Init"
-                    className="border rounded p-1 text-sm"
+                    className="neumorphic-input"
+                    style={{ padding: 'var(--spacing-1)', fontSize: 'var(--font-size-xs)' }}
                     value={entry.initial}
                     onChange={(e) => updateLogEntry(selectedLog.id, index, 'initial', e.target.value)}
                   />
@@ -184,28 +219,38 @@ const LogsView = () => {
         
         case 'planograms':
           return (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
               {currentLog.entries.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded">
+                <div key={index} className="neumorphic-inset" style={{
+                  padding: 'var(--spacing-3)',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
                   <div>
                     <div className="font-medium">{entry.zone}</div>
-                    <div className="text-sm text-gray-600">Assigned: {entry.assignee}</div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      Assigned: {entry.assignee}
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="d-flex items-center gap-2">
                     <input
                       type="text"
                       placeholder="Initials"
-                      className="border rounded p-2 w-20"
+                      className="neumorphic-input"
+                      style={{ padding: 'var(--spacing-2)', width: '80px', fontSize: 'var(--font-size-sm)' }}
                       value={entry.initial}
                       onChange={(e) => updateLogEntry(selectedLog.id, index, 'initial', e.target.value)}
                     />
-                    <label className="flex items-center space-x-2">
+                    <label className="d-flex items-center gap-2" style={{ cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={entry.completed}
                         onChange={(e) => updateLogEntry(selectedLog.id, index, 'completed', e.target.checked)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                       />
-                      <span>Complete</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)' }}>Complete</span>
                     </label>
                   </div>
                 </div>
@@ -215,42 +260,58 @@ const LogsView = () => {
         
         case 'reimbursable-meals':
           return (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
               {currentLog.entries.map((entry, index) => (
-                <div key={index} className="border rounded p-4">
-                  <div className="grid grid-cols-4 gap-4 mb-4">
+                <div key={index} className="neumorphic-inset" style={{
+                  padding: 'var(--spacing-4)',
+                  borderRadius: 'var(--radius-md)'
+                }}>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(4, 1fr)', 
+                    gap: 'var(--spacing-4)',
+                    marginBottom: 'var(--spacing-4)'
+                  }}>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Service Period</label>
-                      <div className="text-sm">{entry.meal}</div>
+                      <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>Service Period</label>
+                      <div className="font-medium" style={{ fontSize: 'var(--font-size-sm)' }}>{entry.meal}</div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Planned</label>
-                      <div className="text-sm">{entry.planned}</div>
+                      <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>Planned</label>
+                      <div className="font-medium" style={{ fontSize: 'var(--font-size-sm)' }}>{entry.planned}</div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Served</label>
+                      <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>Served</label>
                       <input
                         type="number"
-                        className="border rounded p-1 w-full"
+                        className="neumorphic-input"
+                        style={{ padding: 'var(--spacing-1)', width: '100%', fontSize: 'var(--font-size-sm)' }}
                         value={entry.served}
                         onChange={(e) => updateLogEntry(selectedLog.id, index, 'served', parseInt(e.target.value) || 0)}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Waste</label>
+                      <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>Waste</label>
                       <input
                         type="number"
-                        className="border rounded p-1 w-full"
+                        className="neumorphic-input"
+                        style={{ padding: 'var(--spacing-1)', width: '100%', fontSize: 'var(--font-size-sm)' }}
                         value={entry.waste}
                         onChange={(e) => updateLogEntry(selectedLog.id, index, 'waste', parseInt(e.target.value) || 0)}
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Required Components (check 3 of 5)</label>
-                    <div className="grid grid-cols-5 gap-4">
+                    <label className="form-label" style={{ fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-2)' }}>
+                      Required Components (check 3 of 5)
+                    </label>
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(5, 1fr)', 
+                      gap: 'var(--spacing-4)' 
+                    }}>
                       {Object.entries(entry.components).map(([component, checked]) => (
-                        <label key={component} className="flex items-center space-x-1">
+                        <label key={component} className="d-flex items-center gap-1" style={{ cursor: 'pointer' }}>
                           <input
                             type="checkbox"
                             checked={checked}
@@ -258,8 +319,11 @@ const LogsView = () => {
                               ...entry.components,
                               [component]: e.target.checked
                             })}
+                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                           />
-                          <span className="text-sm capitalize">{component}</span>
+                          <span style={{ fontSize: 'var(--font-size-sm)', textTransform: 'capitalize' }}>
+                            {component}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -275,28 +339,35 @@ const LogsView = () => {
     };
 
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Daily Logs</h1>
+      <div style={{ padding: 'var(--spacing-6)' }}>
+        <h1 className="text-neumorphic-embossed" style={{ 
+          fontSize: 'var(--font-size-2xl)', 
+          fontWeight: '700',
+          marginBottom: 'var(--spacing-6)' 
+        }}>
+          Daily Logs
+        </h1>
         
         {!selectedLog ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="demo-grid">
             {logCategories.map((log) => (
-              <div key={log.id} className="bg-white rounded-lg shadow-lg p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div key={log.id} className="neumorphic-raised" style={{ padding: 'var(--spacing-6)' }}>
+                <div className="d-flex items-center justify-between" style={{ marginBottom: 'var(--spacing-4)' }}>
                   <h3 className="font-semibold">{log.name}</h3>
                   {log.status === 'completed' ? (
-                    <CheckCircle2 className="text-green-600" size={24} />
+                    <CheckCircle2 className="text-success" size={24} />
                   ) : (
-                    <AlertCircle className="text-orange-600" size={24} />
+                    <AlertCircle className="text-warning" size={24} />
                   )}
                 </div>
                 <button
                   onClick={() => setSelectedLog(log)}
-                  className={`w-full py-2 px-4 rounded font-medium ${
+                  className={`btn ${
                     log.status === 'completed'
-                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'btn-success'
+                      : 'btn-primary'
                   }`}
+                  style={{ width: '100%', fontWeight: '500' }}
                 >
                   {log.status === 'completed' ? 'View/Edit Log' : 'Complete Log'}
                 </button>
@@ -304,24 +375,25 @@ const LogsView = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">{selectedLog.name}</h2>
-              <div className="space-x-2">
+          <div className="card-lg">
+            <div className="d-flex items-center justify-between" style={{ marginBottom: 'var(--spacing-6)' }}>
+              <h2 className="text-xl font-bold text-neumorphic-embossed">{selectedLog.name}</h2>
+              <div className="d-flex gap-2">
                 <button
                   onClick={() => {
                     handleTaskCompletion(selectedLog.id);
                     setSelectedLog(null);
                   }}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  className="btn btn-success"
                 >
-                  <Save size={16} className="inline mr-2" />
+                  <Save size={16} style={{ marginRight: 'var(--spacing-2)' }} />
                   Save & Complete
                 </button>
                 <button
                   onClick={() => setSelectedLog(null)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  className="btn btn-ghost"
                 >
+                  <ArrowLeft size={16} style={{ marginRight: 'var(--spacing-2)' }} />
                   Back
                 </button>
               </div>

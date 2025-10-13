@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Link2, Plus, Shield, Clock, XCircle } from 'lucide-react';
 import useStore from '../store';
 
 const RolePhaseWidget = () => {
     const { roles, fetchRoles, scheduleData, fetchPhases, rolePhases, fetchRolePhases, assignRoleToPhase, unassignRoleFromPhase } = useStore();
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedPhase, setSelectedPhase] = useState('');
+    const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
         fetchRoles();
@@ -15,71 +17,164 @@ const RolePhaseWidget = () => {
     const handleAssign = () => {
         if (selectedRole && selectedPhase) {
             assignRoleToPhase(selectedRole, selectedPhase);
+            setSelectedRole('');
+            setSelectedPhase('');
+            setShowForm(false);
         }
     };
 
     const handleUnassign = (roleId, phaseId) => {
-        unassignRoleFromPhase(roleId, phaseId);
+        if (window.confirm('Are you sure you want to unassign this role from this phase?')) {
+            unassignRoleFromPhase(roleId, phaseId);
+        }
+    };
+
+    const getRoleName = (roleId) => {
+        const role = roles.find(r => r.id === roleId);
+        return role?.name || 'Unknown Role';
+    };
+
+    const getPhaseName = (phaseId) => {
+        return scheduleData.phases[phaseId]?.title || 'Unknown Phase';
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Assign Roles to Phases</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div>
-                    <label className="block text-gray-700">Role</label>
-                    <select
-                        className="w-full p-2 border border-gray-300 rounded mt-1"
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value)}
-                    >
-                        <option value="">Select Role</option>
-                        {roles.map(role => (
-                            <option key={role.id} value={role.id}>{role.name}</option>
-                        ))}
-                    </select>
+        <section className="neumorphic-raised" style={{ padding: 'var(--spacing-5)' }}>
+            <div className="d-flex items-center justify-between mb-4">
+                <div className="d-flex items-center gap-2">
+                    <Link2 size={20} className="text-accent" />
+                    <h2 className="text-lg font-bold text-neumorphic-embossed">Role-Phase Assignments</h2>
                 </div>
-                <div>
-                    <label className="block text-gray-700">Phase</label>
-                    <select
-                        className="w-full p-2 border border-gray-300 rounded mt-1"
-                        value={selectedPhase}
-                        onChange={(e) => setSelectedPhase(e.target.value)}
-                    >
-                        <option value="">Select Phase</option>
-                        {Object.values(scheduleData.phases).map(phase => (
-                            <option key={phase.id} value={phase.id}>{phase.title}</option>
-                        ))}
-                    </select>
-                </div>
-                <button onClick={handleAssign} className="w-full bg-blue-500 text-white p-2 rounded mt-4">
-                    Assign
+                <button 
+                    className="btn btn-primary btn-sm btn-circular"
+                    onClick={() => setShowForm(!showForm)}
+                    aria-label="Assign role to phase"
+                >
+                    <Plus size={16} />
                 </button>
             </div>
+
+            {/* Assignment Form */}
+            {showForm && (
+                <div className="neumorphic-inset" style={{ 
+                    padding: 'var(--spacing-4)', 
+                    marginBottom: 'var(--spacing-4)', 
+                    borderRadius: 'var(--radius-md)' 
+                }}>
+                    <h3 className="text-base font-semibold mb-3">Assign Role to Phase</h3>
+                    <div className="form-field">
+                        <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>
+                            Role
+                        </label>
+                        <select
+                            className="neumorphic-input"
+                            value={selectedRole}
+                            onChange={(e) => setSelectedRole(e.target.value)}
+                            style={{ fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-2)' }}
+                        >
+                            <option value="">Select Role</option>
+                            {roles.map(role => (
+                                <option key={role.id} value={role.id}>{role.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-field">
+                        <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>
+                            Phase
+                        </label>
+                        <select
+                            className="neumorphic-input"
+                            value={selectedPhase}
+                            onChange={(e) => setSelectedPhase(e.target.value)}
+                            style={{ fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-2)' }}
+                        >
+                            <option value="">Select Phase</option>
+                            {Object.values(scheduleData.phases).map(phase => (
+                                <option key={phase.id} value={phase.id}>{phase.title}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <button 
+                            onClick={handleAssign} 
+                            className="btn btn-accent btn-sm" 
+                            style={{ flex: 1 }}
+                            disabled={!selectedRole || !selectedPhase}
+                        >
+                            Assign
+                        </button>
+                        <button 
+                            onClick={() => {
+                                setShowForm(false);
+                                setSelectedRole('');
+                                setSelectedPhase('');
+                            }} 
+                            className="btn btn-ghost btn-sm"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Assignments List */}
             <div>
-                <h3 className="text-lg font-bold mb-4">Current Assignments</h3>
-                <table className="w-full bg-white rounded shadow-md">
-                    <thead>
-                        <tr>
-                            <th className="p-2 border-b">Role</th>
-                            <th className="p-2 border-b">Phase</th>
-                            <th className="p-2 border-b">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                {rolePhases.length === 0 ? (
+                    <div className="text-center text-secondary" style={{ padding: 'var(--spacing-4)' }}>
+                        <Link2 size={32} style={{ opacity: 0.3, margin: '0 auto var(--spacing-2)' }} />
+                        <p style={{ fontSize: 'var(--font-size-sm)' }}>No role-phase assignments found</p>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
                         {rolePhases.map(rp => (
-                            <tr key={`${rp.role_id}-${rp.phase_id}`}>
-                                <td className="p-2 border-b">{roles.find(r => r.id === rp.role_id)?.name}</td>
-                                <td className="p-2 border-b">{scheduleData.phases[rp.phase_id]?.title}</td>
-                                <td className="p-2 border-b">
-                                    <button onClick={() => handleUnassign(rp.role_id, rp.phase_id)} className="bg-red-500 text-white p-1 rounded">Unassign</button>
-                                </td>
-                            </tr>
+                            <div 
+                                key={`${rp.role_id}-${rp.phase_id}`}
+                                className="neumorphic-inset"
+                                style={{
+                                    padding: 'var(--spacing-3)',
+                                    borderRadius: 'var(--radius-md)',
+                                }}
+                            >
+                                <div className="d-flex items-center justify-between">
+                                    <div style={{ flex: 1 }}>
+                                        <div className="d-flex items-center gap-3">
+                                            <div className="d-flex items-center gap-1">
+                                                <Shield size={14} className="text-accent" />
+                                                <span className="font-medium" style={{ fontSize: 'var(--font-size-sm)' }}>
+                                                    {getRoleName(rp.role_id)}
+                                                </span>
+                                            </div>
+                                            <div style={{ 
+                                                width: '1px', 
+                                                height: '16px', 
+                                                backgroundColor: 'var(--border-secondary)' 
+                                            }} />
+                                            <div className="d-flex items-center gap-1">
+                                                <Clock size={14} className="text-secondary" />
+                                                <span style={{ 
+                                                    fontSize: 'var(--font-size-sm)',
+                                                    color: 'var(--text-secondary)'
+                                                }}>
+                                                    {getPhaseName(rp.phase_id)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleUnassign(rp.role_id, rp.phase_id)} 
+                                        className="btn btn-error btn-sm"
+                                        style={{ padding: 'var(--spacing-1)' }}
+                                        aria-label={`Unassign ${getRoleName(rp.role_id)} from ${getPhaseName(rp.phase_id)}`}
+                                    >
+                                        <XCircle size={12} />
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                )}
             </div>
-        </div>
+        </section>
     );
 };
 

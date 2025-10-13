@@ -1,89 +1,66 @@
 import React from 'react';
-import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Globe, Users } from 'lucide-react';
+import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Clock, LayoutGrid, User, Users } from 'lucide-react';
 import useStore from '../store';
+import ThemeChooser from './ThemeChooser';
 
 const NavigationBar = () => {
-    const { currentView, setCurrentView, currentLanguage, setCurrentLanguage, getCurrentTimeString, getCurrentDateString, user } = useStore();
+  const { currentView, setCurrentView, getCurrentTimeString, getCurrentDateString, user } = useStore();
 
-    return (
-        <nav className="bg-blue-900 text-white p-4">
-        <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-            <h1 className="text-2xl font-bold">Kitchen Kontrol</h1>
-            <div className="flex space-x-4">
-                <button
-                onClick={() => setCurrentView('dashboard')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'dashboard' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                >
-                <Home size={18} />
-                <span>Dashboard</span>
-                </button>
-                <button
-                onClick={() => setCurrentView('logs')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'logs' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                >
-                <FileText size={18} />
-                <span>Daily Logs</span>
-                </button>
-                <button
-                onClick={() => setCurrentView('training')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'training' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                >
-                <BookOpen size={18} />
-                <span>Training</span>
-                </button>
-                {user?.permissions === 'admin' && (
-                    <button
-                    onClick={() => setCurrentView('reports')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'reports' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                    >
-                    <BarChart3 size={18} />
-                    <span>Manager Reports</span>
-                    </button>
-                )}
-                <button
-                onClick={() => setCurrentView('planograms')}
-                className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'planograms' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                >
-                <ClipboardCheck size={18} />
-                <span>Planograms</span>
-                </button>
-                {user?.permissions === 'user' && (
-                    <button
-                        onClick={() => setCurrentView('my-tasks')}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'my-tasks' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                    >
-                        <ClipboardCheck size={18} />
-                        <span>My Tasks</span>
-                    </button>
-                )}
-                {user?.permissions === 'admin' && (
-                    <button
-                    onClick={() => setCurrentView('users')}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded ${currentView === 'users' ? 'bg-blue-700' : 'hover:bg-blue-800'}`}
-                    >
-                    <Users size={18} />
-                    <span>User Management</span>
-                    </button>
-                )}
-            </div>
-            </div>
-            <div className="flex items-center space-x-4">
-            <div className="text-right">
-                <div className="font-semibold">{getCurrentTimeString()}</div>
-                <div className="text-sm text-blue-200">{getCurrentDateString()}</div>
-            </div>
-            <button
-                onClick={() => setCurrentLanguage(currentLanguage === 'en' ? 'es' : 'en')}
-                className="flex items-center space-x-2 px-3 py-2 bg-blue-700 rounded hover:bg-blue-600"
-            >
-                <Globe size={18} />
-                <span>{currentLanguage === 'en' ? 'ES' : 'EN'}</span>
-            </button>
-            </div>
+  const navItems = [
+    { id: 'dashboard', icon: Home, label: 'Dashboard' },
+    { id: 'logs', icon: FileText, label: 'Logs' },
+    { id: 'training', icon: BookOpen, label: 'Training' },
+    { id: 'reports', icon: BarChart3, label: 'Reports', adminOnly: true },
+    { id: 'tasks', icon: ClipboardCheck, label: 'Tasks' },
+    { id: 'planograms', icon: LayoutGrid, label: 'Planograms' },
+    { id: 'users', icon: Users, label: 'Users', adminOnly: true },
+  ].filter(item => !item.adminOnly || user?.permissions === 'admin');
+
+  return (
+    <nav className="navbar">
+      <div className="navbar-brand">
+        <Clock size={24} className="text-accent" />
+        Kitchen Kontrol
+      </div>
+      
+      <div className="navbar-nav">
+        {navItems.map(({ id, icon: Icon, label }) => (
+          <button
+            key={id}
+            onClick={() => setCurrentView(id)}
+            className={`nav-link ${currentView === id ? 'active' : ''}`}
+            type="button"
+          >
+            <Icon size={18} />
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="d-flex items-center gap-4">
+        <ThemeChooser />
+        
+        <div className="neumorphic-inset" style={{ 
+          padding: 'var(--spacing-3)', 
+          borderRadius: 'var(--radius-md)',
+          minWidth: '160px'
+        }}>
+          <div className="d-flex items-center gap-2 mb-1">
+            <Clock size={14} className="text-accent" />
+            <span className="text-sm font-semibold">{getCurrentTimeString()}</span>
+          </div>
+          <div className="text-xs text-secondary">{getCurrentDateString()}</div>
         </div>
-        </nav>
-    );
-}
+        
+        {user && (
+          <div className="d-flex items-center gap-2">
+            <User size={18} className="text-accent" />
+            <span className="text-sm font-medium">{user.name}</span>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+};
 
 export default NavigationBar;

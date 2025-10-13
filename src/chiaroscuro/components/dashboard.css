@@ -1,0 +1,43 @@
+.dashboard-widgets {
+  margin-top: 2rem;
+}
+
+.neumorphic-card {
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--neumorphic-shadow);
+}
+
+.stats-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.stat-item {
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--neumorphic-shadow-inset);
+  background: var(--surface-color-darker);
+}
+
+.stat-label {
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.absences-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.absence-item {
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  background: var(--surface-color-darker);
+  margin-bottom: 0.5rem;
+  box-shadow: var(--neumorphic-shadow-inset);
+}

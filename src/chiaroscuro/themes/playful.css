@@ -1,0 +1,79 @@
+/* ==============================================
+   ChiaroscuroCSS - Playful Theme
+   ============================================== */
+
+[data-theme="playful"] {
+  /* === Primary Colors === */
+  --bg-primary: #fff8e1;
+  --bg-secondary: #ffecb3;
+  --bg-tertiary: #ffe082;
+  --bg-elevated: #ffffff;
+  
+  /* === Text Colors === */
+  --text-primary: #3e2723;
+  --text-secondary: #6d4c41;
+  --text-tertiary: #8d6e63;
+  --text-disabled: #a1887f;
+  
+  /* === Accent Colors === */
+  --accent-primary: #ff9800;
+  --accent-secondary: #ffc107;
+  --accent-tertiary: #f57c00;
+  --accent-success: #4caf50;
+  --accent-warning: #ffeb3b;
+  --accent-error: #f44336;
+  --accent-info: #2196f3;
+  
+  /* === Borders === */
+  --border-primary: #ffcc80;
+  --border-secondary: #ffab40;
+  --border-accent: var(--accent-primary);
+  
+  /* === Shadows === */
+  --shadow-light: rgba(255, 255, 255, 0.9);
+  --shadow-dark: rgba(109, 76, 65, 0.3);
+  --shadow-accent: rgba(255, 152, 0, 0.4);
+  
+  /* === Theme-specific Properties === */
+  --theme-glow: 0 0 12px rgba(255, 152, 0, 0.6);
+  --theme-glow-intense: 0 0 24px rgba(255, 152, 0, 0.8);
+  --theme-gradient-start: #ff9800;
+  --theme-gradient-end: #ffc107;
+}
+
+/* === Playful Theme Enhancements === */
+[data-theme="playful"] .neumorphic-raised,
+[data-theme="playful"] .neumorphic-inset,
+[data-theme="playful"] .neumorphic-beveled {
+  border: 1px solid rgba(255, 152, 0, 0.2);
+}
+
+[data-theme="playful"] .neumorphic-accent {
+  box-shadow: 
+    var(--theme-glow),
+    -6px -6px 12px var(--shadow-light),
+    6px 6px 12px var(--shadow-dark);
+}
+
+[data-theme="playful"] .btn:focus {
+  box-shadow: 
+    0 0 0 var(--focus-ring-offset) var(--bg-primary),
+    0 0 0 calc(var(--focus-ring-offset) + var(--focus-ring-width)) var(--accent-primary),
+    var(--theme-glow);
+}
+
+[data-theme="playful"] .theme-gradient {
+  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
+}
+
+[data-theme="playful"] .text-theme {
+  color: var(--accent-primary);
+}
+
+[data-theme="playful"] .border-theme {
+  border-color: var(--accent-primary);
+}
+
+[data-theme="playful"] .bg-theme {
+  background-color: var(--accent-primary);
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Briefcase, Plus, Edit2, Trash2, UserPlus, Shield } from 'lucide-react';
 import useStore from '../store';
 
 const RolesWidget = () => {
@@ -7,6 +8,8 @@ const RolesWidget = () => {
     const [editingRole, setEditingRole] = useState(null);
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [showAssignForm, setShowAssignForm] = useState(false);
 
     useEffect(() => {
         fetchRoles();
@@ -22,96 +25,210 @@ const RolesWidget = () => {
         }
         setName('');
         setEditingRole(null);
+        setShowAddForm(false);
     };
 
     const handleEdit = (role) => {
         setEditingRole(role);
         setName(role.name);
+        setShowAddForm(true);
+    };
+
+    const handleCancel = () => {
+        setEditingRole(null);
+        setName('');
+        setShowAddForm(false);
     };
 
     const handleAssignRole = () => {
         if (selectedUser && selectedRole) {
             assignRole(selectedUser, selectedRole);
+            setSelectedUser('');
+            setSelectedRole('');
+            setShowAssignForm(false);
+        }
+    };
+
+    const handleDelete = (roleId) => {
+        if (window.confirm('Are you sure you want to delete this role?')) {
+            deleteRole(roleId);
         }
     };
 
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Roles</h2>
-            <form className="mb-6" onSubmit={handleSubmit}>
-                <h3 className="text-lg font-bold mb-4">{editingRole ? 'Edit Role' : 'Add Role'}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-gray-700">Name</label>
-                        <input
-                            type="text"
-                            className="w-full p-2 border border-gray-300 rounded mt-1"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                    </div>
+        <section className="neumorphic-raised" style={{ padding: 'var(--spacing-5)' }}>
+            <div className="d-flex items-center justify-between mb-4">
+                <div className="d-flex items-center gap-2">
+                    <Briefcase size={20} className="text-accent" />
+                    <h2 className="text-lg font-bold text-neumorphic-embossed">Roles</h2>
                 </div>
-                <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded mt-4">
-                    {editingRole ? 'Update Role' : 'Add Role'}
+                <button 
+                    className="btn btn-primary btn-sm btn-circular"
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    aria-label="Add role"
+                >
+                    <Plus size={16} />
                 </button>
-            </form>
-            <div>
-                <h3 className="text-lg font-bold mb-4">Current Roles</h3>
-                <table className="w-full bg-white rounded shadow-md">
-                    <thead>
-                        <tr>
-                            <th className="p-2 border-b">Name</th>
-                            <th className="p-2 border-b">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {roles.map(role => (
-                            <tr key={role.id}>
-                                <td className="p-2 border-b">{role.name}</td>
-                                <td className="p-2 border-b">
-                                    <button onClick={() => handleEdit(role)} className="bg-yellow-500 text-white p-1 rounded mr-2">Edit</button>
-                                    <button onClick={() => deleteRole(role.id)} className="bg-red-500 text-white p-1 rounded">Delete</button>
-                                </td>
-                            </tr>
+            </div>
+
+            {/* Add/Edit Role Form */}
+            {showAddForm && (
+                <div className="neumorphic-inset" style={{ 
+                    padding: 'var(--spacing-4)', 
+                    marginBottom: 'var(--spacing-4)', 
+                    borderRadius: 'var(--radius-md)' 
+                }}>
+                    <h3 className="text-base font-semibold mb-3">
+                        {editingRole ? 'Edit Role' : 'Add New Role'}
+                    </h3>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-field">
+                            <label className="form-label" style={{ fontSize: 'var(--font-size-sm)' }}>
+                                Role Name
+                            </label>
+                            <input
+                                type="text"
+                                className="neumorphic-input"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                placeholder="e.g., Line Cook, Sous Chef"
+                                style={{ fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-2)' }}
+                            />
+                        </div>
+                        <div className="d-flex gap-2">
+                            <button type="submit" className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+                                {editingRole ? 'Update' : 'Add Role'}
+                            </button>
+                            <button type="button" onClick={handleCancel} className="btn btn-ghost btn-sm">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {/* Roles List */}
+            <div style={{ marginBottom: 'var(--spacing-4)' }}>
+                {roles.length === 0 ? (
+                    <div className="text-center text-secondary" style={{ padding: 'var(--spacing-4)' }}>
+                        <Briefcase size={32} style={{ opacity: 0.3, margin: '0 auto var(--spacing-2)' }} />
+                        <p style={{ fontSize: 'var(--font-size-sm)' }}>No roles found</p>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+                        {roles.map((role) => (
+                            <div 
+                                key={role.id}
+                                className="neumorphic-inset"
+                                style={{
+                                    padding: 'var(--spacing-3)',
+                                    borderRadius: 'var(--radius-md)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between'
+                                }}
+                            >
+                                <div className="d-flex items-center gap-2">
+                                    <Shield size={16} className="text-accent" />
+                                    <span className="font-medium" style={{ fontSize: 'var(--font-size-sm)' }}>
+                                        {role.name}
+                                    </span>
+                                </div>
+                                <div className="d-flex gap-1">
+                                    <button 
+                                        onClick={() => handleEdit(role)} 
+                                        className="btn btn-warning btn-sm"
+                                        style={{ padding: 'var(--spacing-1)' }}
+                                        aria-label={`Edit ${role.name}`}
+                                    >
+                                        <Edit2 size={12} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(role.id)} 
+                                        className="btn btn-error btn-sm"
+                                        style={{ padding: 'var(--spacing-1)' }}
+                                        aria-label={`Delete ${role.name}`}
+                                    >
+                                        <Trash2 size={12} />
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                )}
             </div>
-            <div className="mt-6">
-                <h3 className="text-lg font-bold mb-4">Assign Role to User</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-gray-700">User</label>
-                        <select
-                            className="w-full p-2 border border-gray-300 rounded mt-1"
-                            value={selectedUser}
-                            onChange={(e) => setSelectedUser(e.target.value)}
-                        >
-                            <option value="">Select User</option>
-                            {users.map(user => (
-                                <option key={user.id} value={user.id}>{user.name}</option>
-                            ))}
-                        </select>
+
+            {/* Assign Role Section */}
+            <div style={{ 
+                borderTop: '1px solid var(--border-secondary)', 
+                paddingTop: 'var(--spacing-4)' 
+            }}>
+                <div className="d-flex items-center justify-between mb-3">
+                    <div className="d-flex items-center gap-2">
+                        <UserPlus size={18} className="text-accent" />
+                        <h3 className="text-base font-semibold">Assign Role</h3>
                     </div>
-                    <div>
-                        <label className="block text-gray-700">Role</label>
-                        <select
-                            className="w-full p-2 border border-gray-300 rounded mt-1"
-                            value={selectedRole}
-                            onChange={(e) => setSelectedRole(e.target.value)}
-                        >
-                            <option value="">Select Role</option>
-                            {roles.map(role => (
-                                <option key={role.id} value={role.id}>{role.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <button 
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setShowAssignForm(!showAssignForm)}
+                    >
+                        {showAssignForm ? 'Hide' : 'Show'}
+                    </button>
                 </div>
-                <button onClick={handleAssignRole} className="w-full bg-blue-500 text-white p-2 rounded mt-4">
-                    Assign Role
-                </button>
+
+                {showAssignForm && (
+                    <div className="neumorphic-inset" style={{ 
+                        padding: 'var(--spacing-3)', 
+                        borderRadius: 'var(--radius-md)' 
+                    }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
+                            <div className="form-field">
+                                <label className="form-label" style={{ fontSize: 'var(--font-size-xs)' }}>
+                                    User
+                                </label>
+                                <select
+                                    className="neumorphic-input"
+                                    value={selectedUser}
+                                    onChange={(e) => setSelectedUser(e.target.value)}
+                                    style={{ fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-2)' }}
+                                >
+                                    <option value="">Select User</option>
+                                    {users.map(user => (
+                                        <option key={user.id} value={user.id}>{user.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-field">
+                                <label className="form-label" style={{ fontSize: 'var(--font-size-xs)' }}>
+                                    Role
+                                </label>
+                                <select
+                                    className="neumorphic-input"
+                                    value={selectedRole}
+                                    onChange={(e) => setSelectedRole(e.target.value)}
+                                    style={{ fontSize: 'var(--font-size-sm)', padding: 'var(--spacing-2)' }}
+                                >
+                                    <option value="">Select Role</option>
+                                    {roles.map(role => (
+                                        <option key={role.id} value={role.id}>{role.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleAssignRole} 
+                            className="btn btn-accent btn-sm"
+                            style={{ width: '100%', marginTop: 'var(--spacing-2)' }}
+                            disabled={!selectedUser || !selectedRole}
+                        >
+                            <UserPlus size={14} style={{ marginRight: 'var(--spacing-1)' }} />
+                            Assign Role
+                        </button>
+                    </div>
+                )}
             </div>
-        </div>
+        </section>
     );
 };
 
