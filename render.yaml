@@ -24,16 +24,16 @@ services:
           name: "kitchen-kontrol-db"
           property: "connectionString"
 
-  - type: "static"
+  - type: "web"
     name: "kitchen-kontrol-frontend"
+    env: "static"
     branch: "main"
     buildCommand: "npm run build"
-    publishPath: "build"
+    staticPublishPath: "build"
     region: "oregon"
-    plan: "starter"
     envVars:
       - key: "REACT_APP_API_URL"
         fromService:
           type: "web"
           name: "kitchen-kontrol-backend"
-          property: "url"
+          property: "host"
