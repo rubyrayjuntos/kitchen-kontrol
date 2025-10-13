@@ -127,13 +127,29 @@ const FormRendererTest = () => {
         </dl>
       </div>
 
+      {/* Testing Instructions */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <h3 className="font-semibold text-yellow-900 mb-2">📝 Testing Instructions</h3>
+        <ul className="text-sm text-yellow-800 space-y-1">
+          <li>• Form has pre-filled values for easy testing</li>
+          <li>• <strong>Fill in all required fields</strong> (marked with red *)</li>
+          <li>• Submit button enables after you change any field</li>
+          <li>• Check validation errors in real-time as you type</li>
+        </ul>
+      </div>
+
       {/* FormRenderer */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
         {template?.form_schema && (
           <FormRenderer
             schema={template.form_schema}
             uiSchema={template.ui_schema || {}}
-            defaultValues={{}}
+            defaultValues={{
+              // Pre-fill some values for easy testing
+              service_type: 'breakfast',
+              check_point: 'hot_hold',
+              check_time: 'morning',
+            }}
             onSubmit={handleSubmit}
             submitLabel="Submit Log"
             loading={submitting}
