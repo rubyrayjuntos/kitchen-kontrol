@@ -12,6 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Login from './components/Login';
 import UserManagement from './components/UserManagement';
 import MyTasks from './components/MyTasks';
+import FormRendererTest from './components/FormRendererTest';
 
 const KitchenKontrol = () => {
   const {
@@ -50,6 +51,8 @@ const KitchenKontrol = () => {
         return user.permissions === 'admin' ? <UserManagement /> : <Dashboard />;
       case 'my-tasks':
         return user.permissions === 'user' ? <MyTasks /> : <Dashboard />;
+      case 'form-test':
+        return <FormRendererTest />;
       default:
         return <Dashboard />;
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Clock, LayoutGrid, User, Users } from 'lucide-react';
+import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Clock, LayoutGrid, User, Users, TestTube } from 'lucide-react';
 import useStore from '../store';
 import ThemeChooser from './ThemeChooser';
 
@@ -14,6 +14,7 @@ const NavigationBar = () => {
     { id: 'tasks', icon: ClipboardCheck, label: 'Tasks' },
     { id: 'planograms', icon: LayoutGrid, label: 'Planograms' },
     { id: 'users', icon: Users, label: 'Users', adminOnly: true },
+    { id: 'form-test', icon: TestTube, label: 'Form Test', adminOnly: true },
   ].filter(item => !item.adminOnly || user?.permissions === 'admin');
 
   return (
