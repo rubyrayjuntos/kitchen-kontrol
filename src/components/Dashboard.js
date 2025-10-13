@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import RoleAssignments from './RoleAssignments';
-import Absences from './Absences';
-import QuickActions from './QuickActions';
 import DailyKitchenPhasesTimeline from './DailyKitchenPhasesTimeline';
+import DailyRoleAssignmentsWidget from './DailyRoleAssignmentsWidget';
+import UpcomingAbsencesWidget from './UpcomingAbsencesWidget';
 
 const Dashboard = () => {
   useEffect(() => {
@@ -10,18 +9,24 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="container" style={{ padding: 'var(--spacing-6)' }}>
-      {/* Daily Kitchen Phases Timeline */}
-      <DailyKitchenPhasesTimeline />
-
-      {/* Role Assignments and Absences Grid */}
-      <div className="demo-grid mb-6">
-        <RoleAssignments />
-        <Absences />
+    <div className="container" style={{ padding: 'var(--spacing-6)', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Row 1: Daily Kitchen Phases Timeline - Full Width */}
+      <div style={{ marginBottom: 'var(--spacing-6)' }}>
+        <DailyKitchenPhasesTimeline />
       </div>
 
-      {/* Quick Actions */}
-      <QuickActions />
+      {/* Row 2: Role Assignments (Left) and Absences (Right) - Half Width Each */}
+      <div 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr', 
+          gap: 'var(--spacing-6)',
+          marginBottom: 'var(--spacing-6)'
+        }}
+      >
+        <DailyRoleAssignmentsWidget />
+        <UpcomingAbsencesWidget />
+      </div>
     </div>
   );
 };
