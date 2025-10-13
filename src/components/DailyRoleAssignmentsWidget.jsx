@@ -4,7 +4,7 @@ import Modal from './Modal';
 import useStore from '../store';
 
 const DailyRoleAssignmentsWidget = () => {
-  const { users, rolePhases, scheduleData, tasks } = useStore();
+  const { users = [], rolePhases = [], scheduleData = {}, tasks = [] } = useStore();
   const [selectedUser, setSelectedUser] = useState(null);
   const [showTasksModal, setShowTasksModal] = useState(false);
 
@@ -21,6 +21,8 @@ const DailyRoleAssignmentsWidget = () => {
 
   // Get user's role assignments for today
   const getUserRoleAssignments = (userId) => {
+    if (!Array.isArray(rolePhases)) return null;
+    
     // Get all role assignments for this user
     const userRolePhases = rolePhases.filter(rp => rp.user_id === userId);
     
@@ -48,14 +50,14 @@ const DailyRoleAssignmentsWidget = () => {
 
   // Get user's tasks for today
   const getUserTasks = (userId) => {
-    return tasks.filter(task => {
-      // Get role phases for this user
-      const userRolePhases = rolePhases.filter(rp => rp.user_id === userId);
-      const userRoleIds = userRolePhases.map(rp => rp.role_id);
-      
-      // Check if task belongs to any of user's roles
-      return userRoleIds.includes(task.role_id);
-    });
+    if (!Array.isArray(tasks) || !Array.isArray(rolePhases)) return [];
+    
+    // Get role phases for this user
+    const userRolePhases = rolePhases.filter(rp => rp.user_id === userId);
+    const userRoleIds = userRolePhases.map(rp => rp.role_id);
+    
+    // Check if task belongs to any of user's roles
+    return tasks.filter(task => userRoleIds.includes(task.role_id));
   };
 
   // Get task completion stats
@@ -67,13 +69,13 @@ const DailyRoleAssignmentsWidget = () => {
   };
 
   // Get users with assignments
-  const usersWithAssignments = users
+  const usersWithAssignments = Array.isArray(users) ? users
     .map(user => ({
       ...user,
       assignments: getUserRoleAssignments(user.id),
       stats: getUserTaskStats(user.id)
     }))
-    .filter(user => user.assignments); // Only show users with assignments
+    .filter(user => user.assignments) : []; // Only show users with assignments
 
   // Handle view tasks
   const handleViewTasks = (user) => {

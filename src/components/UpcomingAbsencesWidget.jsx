@@ -4,7 +4,7 @@ import Modal from './Modal';
 import useStore from '../store';
 
 const UpcomingAbsencesWidget = () => {
-  const { absences, users, createAbsence, deleteAbsence } = useStore();
+  const { absences = [], users = [], createAbsence, deleteAbsence } = useStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAbsence, setSelectedAbsence] = useState(null);
@@ -16,6 +16,8 @@ const UpcomingAbsencesWidget = () => {
 
   // Get upcoming absences (today and future)
   const getUpcomingAbsences = () => {
+    if (!Array.isArray(absences)) return [];
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
