@@ -82,8 +82,7 @@ router.post('/', auth, async (req, res) => {
         UPDATE log_submissions
         SET 
           form_data = $1,
-          status = 'completed',
-          updated_at = CURRENT_TIMESTAMP
+          status = 'completed'
         WHERE id = $2
         RETURNING *
       `, [JSON.stringify(form_data), existingId]);
@@ -162,7 +161,7 @@ router.get('/', auth, async (req, res) => {
         ls.status,
         ls.template_version,
         ls.created_at,
-        ls.updated_at
+        ls.submitted_at
       FROM log_submissions ls
       JOIN log_templates lt ON ls.log_template_id = lt.id
       JOIN users u ON ls.submitted_by = u.id
@@ -316,7 +315,7 @@ router.put('/:id', auth, async (req, res) => {
       updates.push(`status = $${paramIndex++}`);
     }
     
-    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    // Note: log_submissions table has submitted_at and created_at, not updated_at
     
     const result = await db.query(`
       UPDATE log_submissions
