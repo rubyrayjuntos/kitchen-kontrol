@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FormRenderer from './FormRenderer';
 import { ArrowLeft } from 'lucide-react';
 import useStore from '../store';
+import { apiRequest } from '../utils/api';
 
 /**
  * FormRendererTest - Test page for FormRenderer component
@@ -29,17 +30,7 @@ const FormRendererTest = () => {
           return;
         }
         
-        const response = await fetch('/api/logs/templates/1', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await apiRequest('/api/logs/templates/1', token);
         setTemplate(data);
       } catch (err) {
         console.error('Error fetching template:', err);
@@ -59,23 +50,13 @@ const FormRendererTest = () => {
     try {
       const token = user?.token;
 
-      const response = await fetch('/api/logs/submissions', {
+      const result = await apiRequest('/api/logs/submissions', token, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           log_template_id: 1,
           form_data: formData,
         }),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Submission failed');
-      }
 
       setSubmitResult({ success: true, data: result });
       alert('✅ Form submitted successfully!');
