@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
-import { Users, ChevronRight, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, ChevronRight, Calendar, FileText } from 'lucide-react';
 import Modal from './Modal';
 import useStore from '../store';
+import { apiRequest } from '../utils/api';
 
 const DailyRoleAssignmentsWidget = () => {
-  const { users = [], rolePhases = [], scheduleData = {}, tasks = [] } = useStore();
+  const { users = [], rolePhases = [], scheduleData = {}, tasks = [], user } = useStore();
   const [selectedUser, setSelectedUser] = useState(null);
   const [showTasksModal, setShowTasksModal] = useState(false);
+  const [logAssignments, setLogAssignments] = useState([]);
+
+  // Fetch log assignments for today
+  useEffect(() => {
+    const fetchLogAssignments = async () => {
+      if (!user?.token) return;
+      
+      try {
+        const data = await apiRequest('/api/logs/assignments/me', user.token);
+        setLogAssignments(data || []);
+      } catch (error) {
+        console.error('Error fetching log assignments:', error);
+        setLogAssignments([]);
+      }
+    };
+
+    fetchLogAssignments();
+  }, [user?.token]);
 
   // Get today's date formatted
   const getTodayString = () => {
@@ -68,12 +87,21 @@ const DailyRoleAssignmentsWidget = () => {
     return { completed, total, percentage: total > 0 ? Math.round((completed / total) * 100) : 0 };
   };
 
+  // Get user's log assignment stats
+  const getUserLogStats = (userId) => {
+    const userLogs = logAssignments.filter(log => log.assigned_to_user === userId);
+    const completed = userLogs.filter(log => log.is_completed).length;
+    const total = userLogs.length;
+    return { completed, total, percentage: total > 0 ? Math.round((completed / total) * 100) : 0 };
+  };
+
   // Get users with assignments
   const usersWithAssignments = Array.isArray(users) ? users
     .map(user => ({
       ...user,
       assignments: getUserRoleAssignments(user.id),
-      stats: getUserTaskStats(user.id)
+      stats: getUserTaskStats(user.id),
+      logStats: getUserLogStats(user.id)
     }))
     .filter(user => user.assignments) : []; // Only show users with assignments
 
@@ -172,6 +200,16 @@ const DailyRoleAssignmentsWidget = () => {
                           {user.stats.completed} of {user.stats.total} tasks completed ({user.stats.percentage}%)
                         </div>
                       )}
+                      {user.logStats.total > 0 && (
+                        <div className="text-sm" style={{ 
+                          color: user.logStats.completed === user.logStats.total 
+                            ? 'var(--color-success)' 
+                            : 'var(--color-warning)'
+                        }}>
+                          <FileText size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                          {user.logStats.completed}/{user.logStats.total} logs completed
+                        </div>
+                      )}
                     </div>
                   </div>
                   <ChevronRight size={20} className="text-secondary" />
@@ -205,6 +243,30 @@ const DailyRoleAssignmentsWidget = () => {
                         height: '100%',
                         width: `${user.stats.percentage}%`,
                         background: 'var(--color-accent)',
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Log Progress Bar */}
+                {user.logStats.total > 0 && (
+                  <div style={{ 
+                    marginTop: 'var(--spacing-2)',
+                    paddingLeft: '52px'
+                  }}>
+                    <div style={{
+                      height: '6px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: 'var(--radius-full)',
+                      overflow: 'hidden',
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${user.logStats.percentage}%`,
+                        background: user.logStats.completed === user.logStats.total 
+                          ? 'var(--color-success)' 
+                          : 'var(--color-warning)',
                         transition: 'width 0.3s ease'
                       }} />
                     </div>

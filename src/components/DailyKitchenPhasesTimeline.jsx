@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, Pencil, Plus, ChevronLeft, ChevronRight, Trash2, Users, CheckSquare } from 'lucide-react';
+import { Clock, Pencil, Plus, ChevronLeft, ChevronRight, Trash2, Users, CheckSquare, FileText } from 'lucide-react';
 import Modal from './Modal';
 import useStore from '../store';
+import { apiRequest } from '../utils/api';
 
 const DailyKitchenPhasesTimeline = () => {
-  const { scheduleData, createPhase, deletePhase, tasks, users, rolePhases } = useStore();
+  const { scheduleData, createPhase, deletePhase, tasks, users, rolePhases, user } = useStore();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -12,6 +13,7 @@ const DailyKitchenPhasesTimeline = () => {
   const [selectedPhase, setSelectedPhase] = useState(null);
   const [newPhase, setNewPhase] = useState({ name: '', startTime: '08:00' });
   const [carouselOffset, setCarouselOffset] = useState(0);
+  const [logDeadlines, setLogDeadlines] = useState([]);
   const timelineRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -28,6 +30,30 @@ const DailyKitchenPhasesTimeline = () => {
     }, 60000); // Update every minute
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch log assignments with deadlines
+  useEffect(() => {
+    const fetchLogDeadlines = async () => {
+      if (!user?.token) return;
+      
+      try {
+        const data = await apiRequest('/api/logs/assignments/me', user.token);
+        // Transform to include time info for timeline rendering
+        const deadlines = (data || []).map(assignment => ({
+          ...assignment,
+          due_minutes: assignment.due_time ? parseTime(assignment.due_time.substring(0, 5)) : null,
+          status: assignment.is_completed ? 'completed' : 
+                  (new Date() > new Date(assignment.due_time) ? 'overdue' : 'pending')
+        })).filter(d => d.due_minutes !== null);
+        
+        setLogDeadlines(deadlines);
+      } catch (error) {
+        console.error('Error fetching log deadlines:', error);
+      }
+    };
+
+    fetchLogDeadlines();
+  }, [user?.token]);
 
   // Helper: Parse time string to minutes since midnight
   const parseTime = (timeStr) => {
@@ -451,6 +477,64 @@ const DailyKitchenPhasesTimeline = () => {
               </div>
             </div>
           )}
+
+          {/* Log Deadline Markers */}
+          {logDeadlines.map((deadline, idx) => {
+            const containerWidth = containerRef.current?.offsetWidth || 1000;
+            const pixelsPerMinute = containerWidth / TIMELINE_DURATION_MINUTES;
+            const deadlinePosition = (deadline.due_minutes - TIMELINE_START_HOUR * 60) * pixelsPerMinute;
+            
+            // Skip if outside timeline range
+            if (deadline.due_minutes < TIMELINE_START_HOUR * 60 || deadline.due_minutes > TIMELINE_END_HOUR * 60) {
+              return null;
+            }
+
+            const markerColor = 
+              deadline.status === 'completed' ? '#22c55e' :
+              deadline.status === 'overdue' ? '#ef4444' :
+              '#eab308';
+
+            return (
+              <div
+                key={`deadline-${idx}`}
+                style={{
+                  position: 'absolute',
+                  left: `${deadlinePosition}px`,
+                  top: 0,
+                  bottom: 0,
+                  width: '2px',
+                  background: markerColor,
+                  zIndex: 4,
+                  pointerEvents: 'none',
+                  opacity: 0.7
+                }}
+              >
+                <div 
+                  title={`${deadline.template_name} - ${deadline.due_time}`}
+                  style={{
+                    position: 'absolute',
+                    bottom: '-30px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: markerColor,
+                    color: '#ffffff',
+                    padding: '2px 6px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.65rem',
+                    fontWeight: '600',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                    zIndex: 6,
+                    pointerEvents: 'auto',
+                    cursor: 'help'
+                  }}
+                >
+                  <FileText size={10} style={{ display: 'inline', marginRight: '2px' }} />
+                  {deadline.template_name.substring(0, 15)}{deadline.template_name.length > 15 ? '...' : ''}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Carousel controls */}
