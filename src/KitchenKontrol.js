@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import NavigationBar from './components/NavigationBar';
 import Dashboard from './components/Dashboard';
 import LogsView from './components/LogsView';
-import ReportsView from './components/ReportsView';
+import LogReportsView from './components/LogReportsView';
 import TrainingView from './components/TrainingView';
 import PlanogramView from './components/PlanogramView';
 import LogAssignmentWidget from './components/LogAssignmentWidget';
@@ -45,7 +45,7 @@ const KitchenKontrol = () => {
       case 'log-admin':
         return user.permissions === 'admin' ? <LogAssignmentWidget /> : <Dashboard />;
       case 'reports':
-        return user.permissions === 'admin' ? <ReportsView /> : <Dashboard />;
+        return user.permissions === 'admin' ? <LogReportsView /> : <Dashboard />;
       case 'training':
         return <TrainingView />;
       case 'planograms':
