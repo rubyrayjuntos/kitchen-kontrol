@@ -46,6 +46,11 @@ console.log('✓ Registered /api/logs/submissions');
 const logsRouter = require('./routes/logs');
 app.use('/api/logs', logsRouter);
 
+// Reports routes
+console.log('Loading reports route...');
+const reportsRouter = require('./routes/reports');
+app.use('/api/reports', reportsRouter);
+console.log('✓ Registered /api/reports');
 
 const planogramsRouter = require('./routes/planograms');
 app.use('/api/planograms', planogramsRouter);
