@@ -5,6 +5,7 @@ import LogsView from './components/LogsView';
 import ReportsView from './components/ReportsView';
 import TrainingView from './components/TrainingView';
 import PlanogramView from './components/PlanogramView';
+import LogAssignmentWidget from './components/LogAssignmentWidget';
 import useStore from './store';
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -41,6 +42,8 @@ const KitchenKontrol = () => {
         return <Dashboard />;
       case 'logs':
         return <LogsView />;
+      case 'log-admin':
+        return user.permissions === 'admin' ? <LogAssignmentWidget /> : <Dashboard />;
       case 'reports':
         return user.permissions === 'admin' ? <ReportsView /> : <Dashboard />;
       case 'training':
