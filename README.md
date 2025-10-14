@@ -12,18 +12,19 @@ Kitchen Kontrol is a production-ready web application built for commercial kitch
 - **Task Tracking**: Create, assign, and monitor task completion
 - **Absence Management**: Track staff absences with approval workflows
 
-### 📝 **Compliance & Logging**
-- **Equipment Temperature Logs**: Track refrigerator, freezer, and warmer temperatures
-- **Food Temperature Monitoring**: Log arrival, pre-service, and mid-service temps
-- **Planogram Management**: Visual steamer well layout with drag-and-drop editor
-- **Sanitation Setup**: Verify hand wash stations and sanitizer levels
-- **Reimbursable Meals**: Track meal counts and calculate revenue (USDA compliance)
+### 📝 **Compliance & Logging** ⭐ **Phase 3 Complete!**
+- **Dynamic Form System**: JSON Schema-based forms with real-time validation
+- **5 Log Types**: Equipment temps, food temps, planograms, sanitation, reimbursable meals
+- **Smart Assignments**: Assign logs by user, role, or phase with scheduled due times
+- **FormRenderer**: Ajv validation, React Hook Form integration, 7 field types
+- **Audit Trail**: Complete trail of all submissions with timestamps
 
-### 📈 **Reporting & Analytics**
-- **Weekly Log Status**: Completion rates for all required logs
-- **Staff Performance**: Task completion tracking by individual
-- **Audit Trail**: Complete log of all system entries and modifications
-- **Compliance Summary**: Overview of all requirements and action items
+### 📈 **Reporting & Analytics** ⭐ **Phase 3 Complete!**
+- **Weekly Log Status**: CTE queries show completion rates with color-coded progress bars (🟢 ≥90%, 🟡 70-89%, 🔴 <70%)
+- **Reimbursable Meals Report**: JSONB operators check all 5 components, calculate revenue ($3.50/meal), daily breakdown
+- **Compliance Summary**: checkCompliance() detects violations (temp range, planogram issues, sanitation, meals)
+- **Dashboard Integration**: Log tracking in Role Assignments widget, deadline markers on Kitchen Phases Timeline
+- **Date Range Filtering**: Query any time period with start/end date picker
 
 ### 🎓 **Training Center**
 - **Interactive Modules**: Progressive learning with quizzes
@@ -154,10 +155,11 @@ Themes are saved to localStorage and persist across sessions.
 - `tasks` - Assigned tasks with completion tracking
 - `absences` - Staff absence requests with approval status
 
-### Logging Tables
-- `logs` - Daily log entries with timestamps
-- `log_status` - Completion status for required logs
-- `planograms` - Steamer well layouts
+### Logging Tables ⭐ **Phase 3 Complete!**
+- `log_templates` - JSON Schema definitions for 5 log types
+- `log_assignments` - Scheduled log assignments (user/role/phase targets, due times, days of week)
+- `log_submissions` - Completed logs with JSONB form_data
+- `planograms` - Steamer well layouts (legacy, pre-Phase 2)
 - `training_progress` - User training completion tracking
 
 ### Audit
@@ -178,14 +180,22 @@ Themes are saved to localStorage and persist across sessions.
 - `POST /api/absences` - Request absence
 - `PUT /api/absences/:id` - Approve/deny absence
 
-### Logging
-- `GET /api/logs` - Get daily logs
-- `POST /api/logs/:id/complete` - Mark log complete
-- `GET /api/planograms/:date` - Get planogram for date
+### Logging ⭐ **Phase 3 Complete!**
+- `GET /api/logs/templates` - List all log templates
+- `GET /api/logs/templates/:id` - Get template with JSON Schema
+- `POST /api/logs/assignments` - Create assignment (admin only)
+- `GET /api/logs/assignments` - List assignments (admin view)
+- `GET /api/logs/assignments/me` - Get current user's assignments
+- `POST /api/logs/submissions` - Submit completed log with form data
+- `GET /api/logs/submissions` - List all submissions (admin)
+- `GET /api/logs/submissions/me` - Get user's submission history
 
-### Reports
-- `GET /api/performance` - Staff performance metrics
-- `GET /api/audit-log` - Audit trail
+### Reports ⭐ **Phase 3 Complete!**
+- `GET /api/reports/weekly-log-status` - Completion rates by template
+- `GET /api/reports/reimbursable-meals` - Revenue tracking with date range
+- `GET /api/reports/compliance-summary` - Violation detection and analysis
+- `GET /api/performance` - Staff performance metrics (legacy)
+- `GET /api/audit-log` - Audit trail (legacy)
 
 ## 🚢 Deployment
 
@@ -211,8 +221,55 @@ docker compose --env-file .env.production up -d
 
 ## 📊 Features in Detail
 
-### Daily Logs System
-Comprehensive logging for health department compliance:
+### ⭐ Dynamic Logs System (Phase 3 Complete!)
+**Backend Architecture:**
+- 3 PostgreSQL tables: `log_templates`, `log_assignments`, `log_submissions`
+- JSON Schema validation with Ajv
+- JSONB form_data column for flexible storage
+- CTEs for complex reporting queries
+- JSONB operators (`->`, `->>`, `::boolean`, `::numeric`) for data extraction
+
+**Frontend Components:**
+- **FormRenderer.jsx** (350 lines) - Dynamic form rendering from JSON Schema
+- **7 Field Components** - TextInput, NumberInput, SelectInput, RadioInput, CheckboxInput, TextareaInput, DateInput
+- **LogsView.jsx** (217 lines) - User interface for viewing and completing assignments
+- **LogAssignmentWidget.jsx** (300+ lines) - Admin tool to create assignments
+- **LogReportsView.jsx** (648 lines) - Analytics with 3 tabbed views
+- **Dashboard Integration** - Log tracking in widgets, deadline markers on timeline
+
+**5 Log Types:**
+1. **Equipment Temperature Log** - Track cooler/freezer temps (32-40°F safe range)
+2. **Food Temperature Log** - Monitor food storage temps
+3. **Planogram Verification** - Verify serving line layout matches approved setup
+4. **Sanitation Setup** - Confirm sanitizer is mixed correctly, stations are clean
+5. **Reimbursable Meals** - Track meals with all 5 required components ($3.50 revenue per compliant meal)
+
+**Smart Assignment System:**
+- **User Assignment** - Assign to specific individual
+- **Role Assignment** - Assign to everyone with a role (e.g., "All Line Cooks")
+- **Phase Assignment** - Assign to everyone working a phase (e.g., "Breakfast crew")
+- **Scheduled Due Times** - Set time-of-day deadlines (e.g., 8:00 AM)
+- **Days of Week** - Select which days assignment applies (Mon-Sun toggles)
+
+**Reporting & Analytics:**
+- **Weekly Status Report** - CTE queries calculate completion_rate, color-coded progress bars
+- **Reimbursable Meals Report** - JSONB operators check all 5 components, sum students_served, calculate total revenue
+- **Compliance Summary** - checkCompliance() function detects violations:
+  * Temperature out of range (32-40°F)
+  * Planogram items missing
+  * Sanitation incomplete
+  * Meal missing required components
+- **Dashboard Indicators** - Visual markers show log status (🟢 complete, 🟡 pending, 🔴 overdue)
+
+**User Experience:**
+- Real-time validation with error messages
+- Autosave and progress indication
+- Mobile-responsive forms
+- Color-coded status indicators throughout
+- Date range filtering for all reports
+
+### Daily Logs System (Legacy - Pre Phase 3)
+Original hardcoded logging for health department compliance:
 - Equipment temperatures (morning & afternoon)
 - Food temperatures (arrival, pre-service, mid-service)
 - Portion counts and waste tracking
