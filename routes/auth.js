@@ -16,7 +16,7 @@ router.post("/login",
         return res.status(400).json({ errors: errors.array() });
     }
     const { email, password } = req.body;
-    console.log('Login attempt:', { email, password });
+    console.log('Login attempt for email:', email);
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {
         if (err) {
             console.error(err);
@@ -24,10 +24,8 @@ router.post("/login",
         } else if (!user) {
             res.status(401).json({ error: "Invalid credentials" });
         } else {
-            console.log('Hashed password from DB:', user.password);
-            console.log('Password from frontend:', password);
             const isMatch = await bcrypt.compare(password, user.password);
-            console.log('Password match:', isMatch);
+            console.log('Password verification result:', isMatch ? 'success' : 'failed');
             if (isMatch) {
                 const token = jwt.sign({ id: user.id, permissions: user.permissions }, JWT_SECRET, { expiresIn: '1h' });
                 db.run(`INSERT INTO audit_log (user_id, action) VALUES (?, ?)`,

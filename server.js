@@ -2,10 +2,25 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./db.js');
+const { apiLimiter, loginLimiter } = require('./middleware/rateLimiter');
+const { errorHandler, AppError } = require('./middleware/errorHandler');
+const { logger, requestLogger } = require('./middleware/logger');
+const { sentryRequestHandler, sentryErrorHandler } = require('./middleware/errorTracking');
 
 const app = express();
+
+// Sentry request handler (must be first)
+app.use(sentryRequestHandler());
+
+// CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
+
+// Request logging
+app.use(requestLogger);
+
+// Apply rate limiting to all API routes
+app.use('/api/', apiLimiter);
 
 const PORT = process.env.PORT || 3002;
 
@@ -59,7 +74,7 @@ const ingredientsRouter = require('./routes/ingredients');
 app.use('/api/ingredients', ingredientsRouter);
 
 const authRouter = require('./routes/auth');
-app.use('/api/auth', authRouter);
+app.use('/api/auth', loginLimiter, authRouter);
 
 const meRouter = require('./routes/me');
 app.use('/api/me', meRouter);
@@ -85,36 +100,14 @@ app.use('/api/performance', performanceRouter);
 
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Error caught by middleware:', err.stack);
-    
-    // Check if it's a database constraint error
-    if (err.code === '23505') { // PostgreSQL unique violation
-        return res.status(409).json({ 
-            error: 'Duplicate entry', 
-            message: err.detail || 'A record with this value already exists',
-            field: err.constraint 
-        });
-    }
-    
-    // Check if it's a validation error
-    if (err.name === 'ValidationError') {
-        return res.status(400).json({ 
-            error: 'Validation failed', 
-            message: err.message 
-        });
-    }
-    
-    // Generic error response
-    res.status(err.status || 500).json({ 
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-});
+// Sentry error handler (must come before custom error handler)
+app.use(sentryErrorHandler());
+
+// Custom error handler (must be last)
+app.use(errorHandler);
 
 // We will add more specific API endpoints here later
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
+    logger.info(`Server is running on port ${PORT}`);
 });
