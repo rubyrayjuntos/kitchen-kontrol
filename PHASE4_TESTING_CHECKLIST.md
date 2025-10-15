@@ -39,9 +39,9 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/kitchendb node server.j
 ```
 
 **Verify:**
-- [ ] No connection errors
-- [ ] Port 3002 is accessible
-- [ ] Database connection established
+- [ ✅] No connection errors
+- [✅ ] Port 3002 is accessible
+- [✅ ] Database connection established
 
 ---
 
@@ -57,9 +57,9 @@ Local: http://localhost:3000
 ```
 
 **Verify:**
-- [ ] React app compiles without errors
-- [ ] No TypeScript/ESLint errors
-- [ ] Browser opens automatically
+- [✅ ] React app compiles without errors
+- [✅ ] No TypeScript/ESLint errors
+- [✅] Browser opens automatically
 
 ---
 

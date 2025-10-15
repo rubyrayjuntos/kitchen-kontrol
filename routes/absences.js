@@ -26,7 +26,7 @@ router.post("/", auth,
     const { user_id, start_date, end_date, reason } = req.body;
     db.run(
         `INSERT INTO absences (user_id, start_date, end_date, reason, approved) VALUES (?, ?, ?, ?, ?)`,
-        [user_id, start_date, end_date, reason, false],
+        [user_id, start_date, end_date, reason, null],
         function (err) {
             if (err) {
                 next(err);

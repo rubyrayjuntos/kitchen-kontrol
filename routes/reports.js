@@ -47,7 +47,7 @@ router.get('/weekly-log-status', auth, async (req, res) => {
           COUNT(DISTINCT la.id) as total_assignments
         FROM log_assignments la
         JOIN log_templates lt ON la.log_template_id = lt.id
-        WHERE la.created_at >= $1 AND la.created_at <= $2
+  WHERE la.created_at::date >= $1::date AND la.created_at::date <= $2::date
         GROUP BY la.log_template_id, lt.name, lt.category
       ),
       submission_counts AS (
@@ -56,7 +56,7 @@ router.get('/weekly-log-status', auth, async (req, res) => {
           ls.log_template_id as template_id,
           COUNT(DISTINCT ls.id) as completed_count
         FROM log_submissions ls
-        WHERE ls.submitted_at >= $1 AND ls.submitted_at <= $2
+  WHERE ls.submission_date >= $1::date AND ls.submission_date <= $2::date
         GROUP BY ls.log_template_id
       )
       SELECT 
@@ -65,10 +65,10 @@ router.get('/weekly-log-status', auth, async (req, res) => {
         ac.category,
         ac.total_assignments,
         COALESCE(sc.completed_count, 0) as completed,
-        (ac.total_assignments - COALESCE(sc.completed_count, 0)) as pending,
+        GREATEST(ac.total_assignments - COALESCE(sc.completed_count, 0), 0) as pending,
         CASE 
           WHEN ac.total_assignments > 0 
-          THEN ROUND((COALESCE(sc.completed_count, 0)::numeric / ac.total_assignments::numeric) * 100, 1)
+          THEN ROUND((LEAST(COALESCE(sc.completed_count, 0)::numeric, ac.total_assignments::numeric) / ac.total_assignments::numeric) * 100, 1)
           ELSE 0 
         END as completion_rate
       FROM assignment_counts ac
@@ -130,9 +130,17 @@ router.get('/reimbursable-meals', auth, async (req, res) => {
       return d.toISOString().split('T')[0];
     })();
 
-    // Get the reimbursable-meals template ID
+    // Get the reimbursable-meals template ID (support legacy naming)
     const templateResult = await db.query(
-      "SELECT id FROM log_templates WHERE slug = 'reimbursable-meals' LIMIT 1"
+      `SELECT id 
+       FROM log_templates 
+       WHERE LOWER(name) IN (
+         'reimbursable meals count', 
+         'reimbursable meals', 
+         'reimbursable meals log'
+       )
+       ORDER BY id DESC
+       LIMIT 1`
     );
 
     if (templateResult.rows.length === 0) {
@@ -142,48 +150,63 @@ router.get('/reimbursable-meals', auth, async (req, res) => {
     const templateId = templateResult.rows[0].id;
 
     // Query to get reimbursable meals data
-    // Only count meals where ALL 5 components are present (protein, grain, fruit, vegetable, milk)
     const query = `
       SELECT 
-        DATE(ls.submitted_at) as date,
+        ls.submission_date as date,
         COUNT(*) as submissions,
+        SUM(COALESCE((ls.form_data->>'served_count')::integer, 0)) as served_meals,
+        SUM(COALESCE((ls.form_data->>'planned_count')::integer, 0)) as planned_meals,
         SUM(
           CASE 
             WHEN 
-              (ls.form_data->'components'->>'protein')::boolean = true AND
-              (ls.form_data->'components'->>'grain')::boolean = true AND
-              (ls.form_data->'components'->>'fruit')::boolean = true AND
-              (ls.form_data->'components'->>'vegetable')::boolean = true AND
-              (ls.form_data->'components'->>'milk')::boolean = true
-            THEN (ls.form_data->>'students_served')::integer
+              COALESCE((ls.form_data->>'has_protein')::boolean, false) AND
+              COALESCE((ls.form_data->>'has_grain')::boolean, false) AND
+              COALESCE((ls.form_data->>'has_fruit')::boolean, false) AND
+              COALESCE((ls.form_data->>'has_vegetable')::boolean, false) AND
+              COALESCE((ls.form_data->>'has_milk')::boolean, false)
+            THEN COALESCE((ls.form_data->>'served_count')::integer, 0)
             ELSE 0
           END
-        ) as total_meals
+        ) as compliant_meals
       FROM log_submissions ls
       WHERE ls.log_template_id = $1
-        AND ls.submitted_at >= $2
-        AND ls.submitted_at <= $3
-      GROUP BY DATE(ls.submitted_at)
+        AND ls.submission_date >= $2
+        AND ls.submission_date <= $3
+      GROUP BY ls.submission_date
       ORDER BY date;
     `;
 
     const result = await db.query(query, [templateId, startDate, endDate]);
 
     // Calculate summary statistics
-    const reimbursementRate = 3.50; // $3.50 per meal (this could come from a config table)
-    
-    const totalMeals = result.rows.reduce((sum, row) => sum + parseInt(row.total_meals || 0), 0);
-    const totalRevenue = totalMeals * reimbursementRate;
-    const daysCount = result.rows.length || 1;
-    const avgMealsPerDay = totalMeals / daysCount;
+    const reimbursementRate = 3.50; // $3.50 per compliant meal (could come from configuration)
 
-    // Build daily breakdown with revenue
-    const dailyBreakdown = result.rows.map(row => ({
-      date: row.date,
-      meals: parseInt(row.total_meals || 0),
-      revenue: parseFloat((parseInt(row.total_meals || 0) * reimbursementRate).toFixed(2)),
-      submissions: parseInt(row.submissions),
-    }));
+    const totalCompliantMeals = result.rows.reduce((sum, row) => sum + parseInt(row.compliant_meals || 0, 10), 0);
+    const totalServedMeals = result.rows.reduce((sum, row) => sum + parseInt(row.served_meals || 0, 10), 0);
+    const totalPlannedMeals = result.rows.reduce((sum, row) => sum + parseInt(row.planned_meals || 0, 10), 0);
+    const nonCompliantMeals = Math.max(totalServedMeals - totalCompliantMeals, 0);
+    const totalRevenue = totalCompliantMeals * reimbursementRate;
+    const daysCount = result.rows.length || 1;
+    const avgMealsPerDay = daysCount > 0 ? totalCompliantMeals / daysCount : 0;
+
+    // Build daily breakdown with revenue details
+    const dailyBreakdown = result.rows.map(row => {
+      const compliantMeals = parseInt(row.compliant_meals || 0, 10);
+      const servedMeals = parseInt(row.served_meals || 0, 10);
+      const plannedMeals = parseInt(row.planned_meals || 0, 10);
+      const revenue = parseFloat((compliantMeals * reimbursementRate).toFixed(2));
+
+      return {
+        date: row.date,
+        meals: compliantMeals,
+        compliant_meals: compliantMeals,
+        non_compliant_meals: Math.max(servedMeals - compliantMeals, 0),
+        served_meals: servedMeals,
+        planned_meals: plannedMeals,
+        revenue,
+        submissions: parseInt(row.submissions || 0, 10),
+      };
+    });
 
     res.json({
       date_range: {
@@ -191,7 +214,10 @@ router.get('/reimbursable-meals', auth, async (req, res) => {
         end: endDate,
       },
       summary: {
-        total_meals: totalMeals,
+        total_meals: totalCompliantMeals,
+        total_served_meals: totalServedMeals,
+        total_planned_meals: totalPlannedMeals,
+        non_compliant_meals: nonCompliantMeals,
         total_revenue: parseFloat(totalRevenue.toFixed(2)),
         reimbursement_rate: reimbursementRate,
         avg_meals_per_day: parseFloat(avgMealsPerDay.toFixed(1)),
@@ -259,12 +285,12 @@ router.get('/compliance-summary', auth, async (req, res) => {
         ls.submitted_by,
         lt.name as template_name,
         lt.category,
-        lt.schema,
+  lt.form_schema,
         u.name as user_name
       FROM log_submissions ls
       JOIN log_templates lt ON ls.log_template_id = lt.id
       JOIN users u ON ls.submitted_by = u.id
-      WHERE ls.submitted_at >= $1 AND ls.submitted_at <= $2
+  WHERE ls.submitted_at::date >= $1::date AND ls.submitted_at::date <= $2::date
       ORDER BY ls.submitted_at DESC;
     `;
 
@@ -329,77 +355,146 @@ router.get('/compliance-summary', auth, async (req, res) => {
  */
 function checkCompliance(submission) {
   const violations = [];
-  const formData = submission.form_data;
+  const formData = submission.form_data || {};
 
   // Check based on template type
-  if (submission.template_name.includes('Temperature')) {
-    // Check temperature ranges
-    const temp = parseFloat(formData.temperature);
-    
-    if (isNaN(temp)) {
-      violations.push({
-        issue: 'Missing temperature reading',
-        details: { field: 'temperature', value: formData.temperature },
-        corrective_action: formData.corrective_action || 'Not specified',
-      });
-    } else if (temp < 32 || temp > 40) {
-      violations.push({
-        issue: 'Temperature out of safe range',
-        details: {
-          field: formData.equipment_name || formData.food_item || 'Unknown item',
-          temperature: temp,
-          threshold: '32-40°F',
-        },
-        corrective_action: formData.corrective_action || 'Not specified',
-      });
-    }
-  }
+  if (submission.template_name === 'Equipment Temperatures') {
+    // Check each equipment reading against safe ranges
+    const thresholds = [
+      { field: 'walk_in_fridge', min: 32, max: 40, label: 'Walk-in Fridge' },
+      { field: 'freezer', min: -10, max: 10, label: 'Freezer' },
+      { field: 'milk_coolers', min: 32, max: 40, label: 'Milk Coolers' },
+      { field: 'warmers', min: 135, max: 165, label: 'Warmers' },
+    ];
 
-  if (submission.template_name.includes('Planogram')) {
-    // Check if items are missing or issues reported
-    if (formData.items_present === false) {
-      violations.push({
-        issue: 'Planogram items not present',
-        details: {
-          station: formData.station_name,
-          issues: formData.issues_found || 'Not specified',
-        },
-        corrective_action: formData.notes || 'Not specified',
-      });
-    }
-  }
+    thresholds.forEach(({ field, min, max, label }) => {
+      const value = formData[field];
+      if (value === undefined || value === null || value === '') {
+        violations.push({
+          issue: 'Missing temperature reading',
+          details: { equipment: label, field },
+          corrective_action: formData.notes || 'Not specified',
+        });
+        return;
+      }
 
-  if (submission.template_name.includes('Sanitation')) {
-    // Check if setup is incomplete or supplies missing
-    if (formData.setup_complete === false) {
-      violations.push({
-        issue: 'Sanitation setup incomplete',
-        details: {
-          area: formData.area_name,
-          supplies_missing: formData.supplies_needed || 'Not specified',
-        },
-        corrective_action: 'Complete setup and restock supplies',
-      });
-    }
-  }
-
-  if (submission.template_name.includes('Reimbursable')) {
-    // Check if all required components are present
-    const components = formData.components || {};
-    const missingComponents = [];
-    
-    ['protein', 'grain', 'fruit', 'vegetable', 'milk'].forEach(component => {
-      if (!components[component]) {
-        missingComponents.push(component);
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue) || numericValue < min || numericValue > max) {
+        violations.push({
+          issue: 'Temperature out of safe range',
+          details: { equipment: label, temperature: numericValue, threshold: `${min}-${max}°F` },
+          corrective_action: formData.notes || 'Not specified',
+        });
       }
     });
+  }
+
+  if (submission.template_name === 'Food Temperatures') {
+    const checkpoints = [
+      { field: 'main_entree_temp', label: 'Main Entree' },
+      { field: 'side_dish_temp', label: 'Side Dish' },
+      { field: 'vegetable_temp', label: 'Vegetable' },
+    ];
+
+    checkpoints.forEach(({ field, label }) => {
+      if (formData[field] === undefined || formData[field] === null || formData[field] === '') {
+        return;
+      }
+
+      const value = parseFloat(formData[field]);
+      if (isNaN(value)) {
+        violations.push({
+          issue: 'Invalid temperature reading',
+          details: { item: label, value: formData[field] },
+          corrective_action: formData.corrective_action || 'Not specified',
+        });
+        return;
+      }
+
+      if (value < 135) {
+        violations.push({
+          issue: 'Hot holding below 135°F',
+          details: { item: label, temperature: value },
+          corrective_action: formData.corrective_action || 'Not specified',
+        });
+      }
+    });
+  }
+
+  if (submission.template_name === 'Planogram Cleaning Verification') {
+    const zones = [
+      'zone_serving_line_complete',
+      'zone_dish_pit_complete',
+      'zone_foh_pos_complete',
+      'zone_floors_complete',
+      'zone_monitor_complete'
+    ];
+
+    zones.forEach(zoneField => {
+      if (formData[zoneField] === false) {
+        violations.push({
+          issue: 'Planogram zone incomplete',
+          details: { zone: zoneField, assignee: formData[zoneField.replace('_complete', '_assignee')] || 'Unassigned' },
+          corrective_action: formData.notes || 'Follow up with assignee',
+        });
+      }
+    });
+  }
+
+  if (submission.template_name === 'Sanitation Setup Verification') {
+    const sanitationFields = [
+      'hand_wash_1_soap',
+      'hand_wash_1_towels',
+      'hand_wash_2_soap',
+      'hand_wash_2_towels',
+      'three_comp_sink_soap',
+      'three_comp_sink_sanitizer',
+      'three_comp_sink_test_strips'
+    ];
+
+    sanitationFields.forEach(field => {
+      if (formData[field] === false) {
+        violations.push({
+          issue: 'Sanitation requirement not met',
+          details: { field },
+          corrective_action: formData.notes || 'Restock and verify',
+        });
+      }
+    });
+
+    const sanitizerPpm = formData.three_comp_sink_sanitizer_ppm;
+    if (sanitizerPpm !== undefined && sanitizerPpm !== null && sanitizerPpm !== '') {
+      const ppmValue = parseFloat(sanitizerPpm);
+      if (isNaN(ppmValue) || ppmValue < 200 || ppmValue > 400) {
+        violations.push({
+          issue: 'Sanitizer concentration out of range',
+          details: { field: 'three_comp_sink_sanitizer_ppm', value: ppmValue, threshold: '200-400 PPM' },
+          corrective_action: formData.notes || 'Adjust sanitizer concentration',
+        });
+      }
+    }
+  }
+
+  if (submission.template_name === 'Reimbursable Meals Count') {
+    const components = [
+      { field: 'has_protein', label: 'Protein' },
+      { field: 'has_grain', label: 'Grain' },
+      { field: 'has_fruit', label: 'Fruit' },
+      { field: 'has_vegetable', label: 'Vegetable' },
+      { field: 'has_milk', label: 'Milk' },
+    ];
+
+    const missingComponents = components
+      .filter(component => formData[component.field] === false)
+      .map(component => component.label);
 
     if (missingComponents.length > 0) {
       violations.push({
         issue: 'Meal missing required components',
         details: {
           missing_components: missingComponents,
-          students_served: formData.students_served,
+          meal_period: formData.meal_period,
+          served_count: formData.served_count,
         },
         corrective_action: 'Non-reimbursable - missing components',
       });

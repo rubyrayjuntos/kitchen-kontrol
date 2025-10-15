@@ -14,6 +14,7 @@ import Login from './components/Login';
 import UserManagement from './components/UserManagement';
 import MyTasks from './components/MyTasks';
 import FormRendererTest from './components/FormRendererTest';
+import RolesManagementView from './components/RolesManagementView';
 
 const KitchenKontrol = () => {
   const {
@@ -46,6 +47,8 @@ const KitchenKontrol = () => {
         return user.permissions === 'admin' ? <LogAssignmentWidget /> : <Dashboard />;
       case 'reports':
         return user.permissions === 'admin' ? <LogReportsView /> : <Dashboard />;
+      case 'roles-management':
+        return user.permissions === 'admin' ? <RolesManagementView /> : <Dashboard />;
       case 'training':
         return <TrainingView />;
       case 'planograms':

@@ -5,7 +5,7 @@ import useStore from '../store';
 import { apiRequest } from '../utils/api';
 
 const DailyRoleAssignmentsWidget = () => {
-  const { users = [], rolePhases = [], scheduleData = {}, tasks = [], user } = useStore();
+  const { users = [], userRoles = [], rolePhases = [], roles = [], scheduleData = {}, tasks = [], user } = useStore();
   const [selectedUser, setSelectedUser] = useState(null);
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [logAssignments, setLogAssignments] = useState([]);
@@ -40,42 +40,46 @@ const DailyRoleAssignmentsWidget = () => {
 
   // Get user's role assignments for today
   const getUserRoleAssignments = (userId) => {
-    if (!Array.isArray(rolePhases)) return null;
-    
-    // Get all role assignments for this user
-    const userRolePhases = rolePhases.filter(rp => rp.user_id === userId);
-    
-    if (userRolePhases.length === 0) return null;
+    if (!Array.isArray(userRoles) || !Array.isArray(rolePhases)) return [];
 
-    // Group by phase
-    const assignmentsByPhase = {};
-    
-    userRolePhases.forEach(rp => {
-      const phase = scheduleData.phases?.[rp.phase_id];
-      const phaseName = phase?.title || phase?.name || 'Unknown Phase';
-      const roleName = rp.role_name || 'Unknown Role';
-      
-      if (!assignmentsByPhase[phaseName]) {
-        assignmentsByPhase[phaseName] = [];
-      }
-      assignmentsByPhase[phaseName].push(roleName);
-    });
+    const roleLookup = new Map(roles.map(role => [role.id, role]));
+    const userRoleIds = userRoles
+      .filter(ur => ur.user_id === userId)
+      .map(ur => ur.role_id);
 
-    // Format as "Phase: Role1, Role2"
-    return Object.entries(assignmentsByPhase)
-      .map(([phase, roles]) => `${phase}: ${roles.join(', ')}`)
-      .join(', ');
+    if (userRoleIds.length === 0) return [];
+
+    const assignmentsByPhase = new Map();
+
+    rolePhases
+      .filter(rp => userRoleIds.includes(rp.role_id))
+      .forEach(rp => {
+        const phase = scheduleData.phases?.[rp.phase_id];
+        const phaseName = phase?.title || phase?.name || 'Unassigned Phase';
+        const roleName = roleLookup.get(rp.role_id)?.name || 'Unassigned Role';
+
+        if (!assignmentsByPhase.has(phaseName)) {
+          assignmentsByPhase.set(phaseName, []);
+        }
+        assignmentsByPhase.get(phaseName).push(roleName);
+      });
+
+    return Array.from(assignmentsByPhase.entries()).map(([phaseName, roleNames]) => ({
+      phase: phaseName,
+      roles: roleNames
+    }));
   };
 
   // Get user's tasks for today
   const getUserTasks = (userId) => {
-    if (!Array.isArray(tasks) || !Array.isArray(rolePhases)) return [];
-    
-    // Get role phases for this user
-    const userRolePhases = rolePhases.filter(rp => rp.user_id === userId);
-    const userRoleIds = userRolePhases.map(rp => rp.role_id);
-    
-    // Check if task belongs to any of user's roles
+    if (!Array.isArray(tasks) || !Array.isArray(userRoles)) return [];
+
+    const userRoleIds = userRoles
+      .filter(ur => ur.user_id === userId)
+      .map(ur => ur.role_id);
+
+    if (userRoleIds.length === 0) return [];
+
     return tasks.filter(task => userRoleIds.includes(task.role_id));
   };
 
@@ -97,13 +101,13 @@ const DailyRoleAssignmentsWidget = () => {
 
   // Get users with assignments
   const usersWithAssignments = Array.isArray(users) ? users
-    .map(user => ({
-      ...user,
-      assignments: getUserRoleAssignments(user.id),
-      stats: getUserTaskStats(user.id),
-      logStats: getUserLogStats(user.id)
+    .map(existingUser => ({
+      ...existingUser,
+      assignments: getUserRoleAssignments(existingUser.id),
+      stats: getUserTaskStats(existingUser.id),
+      logStats: getUserLogStats(existingUser.id)
     }))
-    .filter(user => user.assignments) : []; // Only show users with assignments
+    .filter(mappedUser => Array.isArray(mappedUser.assignments) && mappedUser.assignments.length > 0) : [];
 
   // Handle view tasks
   const handleViewTasks = (user) => {
@@ -117,13 +121,26 @@ const DailyRoleAssignmentsWidget = () => {
     const tasksByPhase = {};
 
     userTasks.forEach(task => {
-      const phase = scheduleData.phases?.[task.phase_id];
-      const phaseName = phase?.title || phase?.name || 'Unknown Phase';
-      
-      if (!tasksByPhase[phaseName]) {
-        tasksByPhase[phaseName] = [];
+      const linkedPhases = rolePhases
+        .filter(rp => rp.role_id === task.role_id)
+        .map(rp => scheduleData.phases?.[rp.phase_id])
+        .filter(Boolean);
+
+      if (linkedPhases.length === 0) {
+        if (!tasksByPhase['Unassigned Phase']) {
+          tasksByPhase['Unassigned Phase'] = [];
+        }
+        tasksByPhase['Unassigned Phase'].push(task);
+        return;
       }
-      tasksByPhase[phaseName].push(task);
+
+      linkedPhases.forEach(phase => {
+        const phaseName = phase.title || phase.name || 'Unassigned Phase';
+        if (!tasksByPhase[phaseName]) {
+          tasksByPhase[phaseName] = [];
+        }
+        tasksByPhase[phaseName].push(task);
+      });
     });
 
     return tasksByPhase;
@@ -159,13 +176,21 @@ const DailyRoleAssignmentsWidget = () => {
             No role assignments for today yet.
           </div>
         ) : (
-          <div className="d-flex flex-column gap-3">
+          <div
+            style={{
+              display: 'grid',
+              gap: 'var(--spacing-3)',
+              gridAutoFlow: 'row',
+              alignContent: 'start'
+            }}
+          >
             {usersWithAssignments.map(user => (
               <div
                 key={user.id}
                 className="neumorphic-raised"
                 style={{
                   padding: 'var(--spacing-4)',
+                  width: '100%',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                 }}
@@ -189,11 +214,11 @@ const DailyRoleAssignmentsWidget = () => {
                         color: 'var(--color-accent)'
                       }}
                     >
-                      {user.username?.charAt(0).toUpperCase() || 'U'}
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div>
                       <h4 className="font-semibold" style={{ fontSize: '1rem' }}>
-                        {user.username}
+                        {user.name || 'Unnamed User'}
                       </h4>
                       {user.stats.total > 0 && (
                         <div className="text-secondary text-sm">
@@ -220,11 +245,21 @@ const DailyRoleAssignmentsWidget = () => {
                   className="text-secondary" 
                   style={{ 
                     fontSize: '0.875rem',
-                    lineHeight: '1.5',
-                    paddingLeft: '52px' // Align with username
+                    lineHeight: '1.6',
+                    paddingLeft: '52px'
                   }}
                 >
-                  <strong style={{ color: 'var(--text-primary)' }}>Roles:</strong> {user.assignments}
+                  <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: 'var(--spacing-1)' }}>
+                    Roles
+                  </strong>
+                  <div className="d-flex flex-column" style={{ gap: 'var(--spacing-1)' }}>
+                    {user.assignments.map(({ phase, roles }) => (
+                      <div key={`${user.id}-${phase}`}>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{phase}</span>
+                        <span>: {roles.join(', ')}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
@@ -286,7 +321,7 @@ const DailyRoleAssignmentsWidget = () => {
             setShowTasksModal(false);
             setSelectedUser(null);
           }} 
-          title={`${selectedUser.username}'s Tasks for Today`}
+          title={`${selectedUser.name || 'User'}'s Tasks for Today`}
         >
           <div className="mb-4">
             <div className="badge badge-accent" style={{ marginRight: 'var(--spacing-2)' }}>
@@ -298,7 +333,19 @@ const DailyRoleAssignmentsWidget = () => {
           </div>
 
           <div className="text-secondary mb-4" style={{ fontSize: '0.875rem' }}>
-            <strong>Assigned Roles:</strong> {selectedUser.assignments}
+            <strong>Assigned Roles:</strong>
+            {Array.isArray(selectedUser.assignments) && selectedUser.assignments.length > 0 ? (
+              <div className="d-flex flex-column" style={{ gap: '4px', marginTop: '4px' }}>
+                {selectedUser.assignments.map(({ phase, roles }) => (
+                  <div key={`${phase}-${roles.join('-')}`}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{phase}</span>
+                    <span>: {roles.join(', ')}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span> None</span>
+            )}
           </div>
 
           {(() => {
@@ -347,7 +394,7 @@ const DailyRoleAssignmentsWidget = () => {
                             color: task.completed ? 'var(--text-secondary)' : 'var(--text-primary)'
                           }}
                         >
-                          {task.title}
+                          {task.title || task.name}
                         </div>
                         {task.description && (
                           <div className="text-secondary text-sm" style={{ marginTop: '4px' }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Clock, LayoutGrid, User, Users, TestTube, CalendarCheck } from 'lucide-react';
+import { Home, FileText, BookOpen, BarChart3, ClipboardCheck, Clock, LayoutGrid, User, Users, TestTube, CalendarCheck, Shield } from 'lucide-react';
 import useStore from '../store';
 import ThemeChooser from './ThemeChooser';
 
@@ -12,6 +12,7 @@ const NavigationBar = () => {
     { id: 'log-admin', icon: CalendarCheck, label: 'Assign Logs', adminOnly: true },
     { id: 'training', icon: BookOpen, label: 'Training' },
     { id: 'reports', icon: BarChart3, label: 'Reports', adminOnly: true },
+    { id: 'roles-management', icon: Shield, label: 'Roles', adminOnly: true },
     { id: 'tasks', icon: ClipboardCheck, label: 'Tasks' },
     { id: 'planograms', icon: LayoutGrid, label: 'Planograms' },
     { id: 'users', icon: Users, label: 'Users', adminOnly: true },

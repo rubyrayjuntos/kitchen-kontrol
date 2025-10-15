@@ -367,6 +367,23 @@
   color: var(--text-primary);
 }
 
+/* Accessibility: ensure form fields use high-contrast colors */
+input,
+select,
+textarea,
+.form-control,
+.neumorphic-input,
+.neumorphic-select select,
+.neumorphic-textarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+}
+
 /* Modal specific styles */
 .modal-backdrop {
   position: fixed;

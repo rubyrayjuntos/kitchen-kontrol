@@ -5,7 +5,7 @@ import useStore from '../store';
 import { apiRequest } from '../utils/api';
 
 const DailyKitchenPhasesTimeline = () => {
-  const { scheduleData, createPhase, deletePhase, tasks, users, rolePhases, user } = useStore();
+  const { scheduleData, createPhase, deletePhase, users, user } = useStore();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -135,34 +135,34 @@ const DailyKitchenPhasesTimeline = () => {
     return offset;
   };
 
-  // Get tasks for a phase
+  const getPhaseRoleAssignments = (phaseId) => {
+    const phaseData = scheduleData?.phases?.[phaseId];
+    return Array.isArray(phaseData?.roles) ? phaseData.roles : [];
+  };
+
+  // Collect tasks grouped by role for a phase
   const getPhaseTasksGrouped = (phaseId) => {
-    const phaseTasks = tasks.filter(task => task.phase_id === parseInt(phaseId));
-    const grouped = {};
-
-    phaseTasks.forEach(task => {
-      const roleName = task.role_name || 'Unassigned';
-      if (!grouped[roleName]) {
-        grouped[roleName] = [];
+    const assignments = getPhaseRoleAssignments(phaseId);
+    return assignments.reduce((grouped, role) => {
+      const roleName = role.name || role.title || `Role ${role.id}`;
+      const roleTasks = Array.isArray(role.tasks) ? role.tasks : [];
+      if (roleTasks.length > 0) {
+        grouped[roleName] = roleTasks;
       }
-      grouped[roleName].push(task);
-    });
-
-    return grouped;
+      return grouped;
+    }, {});
   };
 
-  // Get task completion percentage for phase
-  const getPhaseProgress = (phaseId) => {
-    const phaseTasks = tasks.filter(task => task.phase_id === parseInt(phaseId));
-    if (phaseTasks.length === 0) return null; // Return null instead of 0 when no tasks
-    const completed = phaseTasks.filter(task => task.completed).length;
-    return Math.round((completed / phaseTasks.length) * 100);
+  // Provide a simple task summary for a phase
+  const getPhaseTaskSummary = (phaseId) => {
+    const groupedTasks = getPhaseTasksGrouped(phaseId);
+    const totalTasks = Object.values(groupedTasks).reduce((sum, taskList) => sum + taskList.length, 0);
+    return { totalTasks };
   };
 
-  // Get assigned users count for phase
+  // Get assigned roles count for phase
   const getPhaseUserCount = (phaseId) => {
-    const phaseRoles = rolePhases.filter(rp => rp.phase_id === parseInt(phaseId));
-    return phaseRoles.length;
+    return getPhaseRoleAssignments(phaseId).length;
   };
 
   // Handle add phase
@@ -350,7 +350,7 @@ const DailyKitchenPhasesTimeline = () => {
             phases.map((phase, index) => {
               const layout = calculatePhaseLayout(phase, index, phases);
               const isCurrent = isCurrentPhase(phase, phases[index + 1]);
-              const progress = getPhaseProgress(phase.id);
+              const { totalTasks } = getPhaseTaskSummary(phase.id);
               const userCount = getPhaseUserCount(phase.id);
 
               return (
@@ -381,7 +381,7 @@ const DailyKitchenPhasesTimeline = () => {
                     setSelectedPhase(phase);
                     setShowTasksModal(true);
                   }}
-                  title={`${phase.name} (${phase.startTime} - ${layout.endTime})\nDuration: ${layout.duration} minutes\n${progress !== null ? progress + '% tasks completed' : 'No tasks assigned'}`}
+                  title={`${phase.name} (${phase.startTime} - ${layout.endTime})\nDuration: ${layout.duration} minutes\nTasks assigned: ${totalTasks}`}
                 >
                   {/* Phase header */}
                   <div>
@@ -411,26 +411,9 @@ const DailyKitchenPhasesTimeline = () => {
                   {/* Phase footer with progress and user count */}
                   <div>
                     {/* Progress bar */}
-                    {progress !== null ? (
-                      <div style={{
-                        height: '4px',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: 'var(--radius-full)',
-                        overflow: 'hidden',
-                        marginBottom: 'var(--spacing-2)'
-                      }}>
-                        <div style={{
-                          height: '100%',
-                          width: `${progress}%`,
-                          background: 'var(--color-accent)',
-                          transition: 'width 0.3s ease'
-                        }} />
-                      </div>
-                    ) : (
-                      <div className="text-secondary" style={{ fontSize: '0.7rem', marginBottom: 'var(--spacing-2)' }}>
-                        No tasks assigned
-                      </div>
-                    )}
+                    <div className="text-secondary" style={{ fontSize: '0.7rem', marginBottom: 'var(--spacing-2)' }}>
+                      {totalTasks > 0 ? `${totalTasks} ${totalTasks === 1 ? 'task' : 'tasks'} assigned` : 'No tasks assigned yet'}
+                    </div>
 
                     {/* User count */}
                     <div className="d-flex items-center gap-1 text-secondary" style={{ fontSize: '0.75rem' }}>

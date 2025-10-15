@@ -53,10 +53,10 @@ const LogAssignmentWidget = ({ onClose, onSuccess }) => {
           apiRequest('/api/phases', user.token),
         ]);
         
-        setTemplates(templatesData);
-        setUsers(usersData);
-        setRoles(rolesData);
-        setPhases(phasesData);
+        setTemplates(Array.isArray(templatesData) ? templatesData : []);
+        setUsers(Array.isArray(usersData?.data) ? usersData.data : []);
+        setRoles(Array.isArray(rolesData?.data) ? rolesData.data : []);
+        setPhases(Array.isArray(phasesData?.data) ? phasesData.data : []);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err.message);
@@ -90,7 +90,7 @@ const LogAssignmentWidget = ({ onClose, onSuccess }) => {
     
     const selectedDays = Object.entries(daysOfWeek)
       .filter(([_, selected]) => selected)
-      .map(([day]) => day);
+      .map(([day]) => day.substring(0, 3).charAt(0).toUpperCase() + day.substring(1, 3));
     
     if (selectedDays.length === 0) {
       alert('Please select at least one day of the week');
@@ -102,18 +102,18 @@ const LogAssignmentWidget = ({ onClose, onSuccess }) => {
       
       // Build request body based on assignment type
       const requestBody = {
-        template_id: parseInt(templateId),
-        due_time: `${dueTime}:00`, // Convert HH:mm to HH:mm:ss
-        days_of_week: selectedDays,
+        log_template_id: parseInt(templateId, 10),
+        due_time: dueTime ? `${dueTime}:00` : null,
+        days_of_week: selectedDays.join(','),
       };
       
       // Add the appropriate target field
       if (assignmentType === 'user') {
-        requestBody.assigned_to_user = parseInt(targetId);
+        requestBody.user_id = parseInt(targetId, 10);
       } else if (assignmentType === 'role') {
-        requestBody.assigned_to_role = targetId;
+        requestBody.role_id = parseInt(targetId, 10);
       } else if (assignmentType === 'phase') {
-        requestBody.assigned_to_phase = targetId;
+        requestBody.phase_id = targetId;
       }
 
       const result = await apiRequest('/api/logs/assignments', user.token, {
@@ -270,7 +270,7 @@ const LogAssignmentWidget = ({ onClose, onSuccess }) => {
             ))}
             {assignmentType === 'phase' && phases.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} ({p.start_time} - {p.end_time})
+                {(p.title || p.name || p.id)}{p.time ? ` (${p.time})` : ''}
               </option>
             ))}
           </select>

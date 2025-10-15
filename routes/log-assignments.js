@@ -24,11 +24,16 @@ const auth = require('../middleware/auth');
 // ============================================================================
 router.get('/me', auth, async (req, res) => {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
-  const currentTime = new Date().toTimeString().slice(0, 5); // "HH:MM"
+  const now = new Date();
+  const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
+  const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+  const dayOfWeekUpper = dayOfWeek.toUpperCase();
   
   try {
     const result = await db.query(`
+      WITH current_user_roles AS (
+        SELECT role_id FROM user_roles WHERE user_id = $2
+      )
       SELECT 
         lt.id as template_id,
         lt.name as template_name,
@@ -40,50 +45,60 @@ router.get('/me', auth, async (req, res) => {
         la.id as assignment_id,
         la.due_time,
         la.notes as assignment_notes,
+        la.user_id,
+        la.role_id,
+        la.phase_id,
+        ph.title as phase_name,
         ls.id as submission_id,
         ls.status as submission_status,
         ls.submitted_at,
         ls.form_data
       FROM log_templates lt
       JOIN log_assignments la ON lt.id = la.log_template_id
+      LEFT JOIN phases ph ON la.phase_id = ph.id
       LEFT JOIN log_submissions ls ON (
         ls.log_template_id = lt.id 
         AND ls.submission_date = $1
         AND ls.submitted_by = $2
+        AND (ls.log_assignment_id IS NULL OR ls.log_assignment_id = la.id)
       )
       WHERE la.is_active = true
         AND lt.is_active = true
         AND (
-          -- Direct user assignment
           la.user_id = $2
-          
-          -- OR assigned via user's role(s)
-          OR la.role_id IN (
-            SELECT role_id FROM user_roles WHERE user_id = $2
+          OR (
+            la.role_id IS NOT NULL 
+            AND la.role_id IN (SELECT role_id FROM current_user_roles)
           )
-          
-          -- OR assigned via current phase
-          OR la.phase_id IN (
-            SELECT id FROM phases 
-            WHERE $3::time BETWEEN time AND (time + INTERVAL '3 hours')
-            -- Note: Adjust interval based on your phase durations
+          OR (
+            la.phase_id IS NOT NULL
+            AND ph.time IS NOT NULL
+            AND $3::time BETWEEN ph.time AND (ph.time + INTERVAL '3 hours')
+            AND EXISTS (
+              SELECT 1
+              FROM role_phases rp
+              JOIN user_roles ur_table ON ur_table.role_id = rp.role_id
+              WHERE rp.phase_id = la.phase_id
+                AND ur_table.user_id = $2
+            )
           )
         )
         AND (
-          -- Check if today is a scheduled day
-          la.days_of_week LIKE $4
-          OR la.days_of_week = 'all'
+          LOWER(TRIM(la.days_of_week)) = 'all'
+          OR EXISTS (
+            SELECT 1
+            FROM regexp_split_to_table(la.days_of_week, ',') AS day(value)
+            WHERE UPPER(TRIM(value)) = $4
+          )
         )
       ORDER BY 
-        -- Prioritize by due time
         CASE 
           WHEN la.due_time IS NULL THEN '23:59:59'::time
           ELSE la.due_time
         END,
-        -- Then by completion status (pending first)
         CASE WHEN ls.id IS NULL THEN 0 ELSE 1 END,
         lt.name
-    `, [today, req.user.id, currentTime, `%${dayOfWeek}%`]);
+    `, [today, req.user.id, currentTime, dayOfWeekUpper]);
     
     // Transform results to include completion status
     const assignments = result.rows.map(row => ({
@@ -97,6 +112,12 @@ router.get('/me', auth, async (req, res) => {
       assignment_id: row.assignment_id,
       due_time: row.due_time,
       assignment_notes: row.assignment_notes,
+      assignment_target: {
+        user_id: row.user_id,
+        role_id: row.role_id,
+        phase_id: row.phase_id,
+        phase_name: row.phase_name
+      },
       is_completed: !!row.submission_id,
       submission: row.submission_id ? {
         id: row.submission_id,

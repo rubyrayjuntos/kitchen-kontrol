@@ -1,11 +1,23 @@
 import { create } from 'zustand';
 
+const normalizeAbsence = (absence) => {
+  if (!absence) return absence;
+  const dateValue = absence.date || absence.start_date || absence.end_date;
+  return {
+    ...absence,
+    date: dateValue,
+    start_date: absence.start_date || dateValue,
+    end_date: absence.end_date || dateValue,
+  };
+};
+
 const useStore = create((set) => ({
   scheduleData: { phases: {} },
   roles: [],
   userRoles: [],
   rolePhases: [],
   absentees: [],
+  absences: [],
   trainingModules: [],
   newAbsenceData: { user_id: '', start_date: '', end_date: '', reason: '' },
   selection: null,
@@ -228,7 +240,55 @@ const useStore = create((set) => ({
 
   fetchAbsentees: async () => {
     const data = await useStore.getState().makeApiCall('/api/absences', 'GET');
-    set({ absentees: data.data });
+    const rawAbsences = Array.isArray(data.data) ? data.data : [];
+    const normalized = rawAbsences.map(normalizeAbsence);
+    set({ absentees: rawAbsences, absences: normalized });
+  },
+
+  createAbsence: async (absence) => {
+    const payload = {
+      user_id: absence.user_id,
+      start_date: absence.start_date || absence.date,
+      end_date: absence.end_date || absence.date,
+      reason: absence.reason,
+    };
+
+    const response = await useStore.getState().makeApiCall('/api/absences', 'POST', payload);
+    const newAbsence = { id: response.id, approved: null, approvalDate: null, ...payload };
+
+    set((prev) => ({
+      absentees: [...prev.absentees, newAbsence],
+      absences: [...prev.absences, normalizeAbsence(newAbsence)],
+    }));
+  },
+
+  updateAbsenceApproval: async (absenceId, approved) => {
+    const approvalDate = approved === null ? null : new Date().toISOString().split('T')[0];
+    await useStore.getState().makeApiCall(`/api/absences/${absenceId}`, 'PUT', {
+      approved,
+      approvalDate,
+    });
+
+    set((prev) => ({
+      absentees: prev.absentees.map((entry) => (
+        entry.id === absenceId ? { ...entry, approved, approvalDate } : entry
+      )),
+      absences: prev.absences.map((entry) => (
+        entry.id === absenceId
+          ? normalizeAbsence({ ...entry, approved, approvalDate })
+          : entry
+      )),
+    }));
+
+    return { approved, approvalDate };
+  },
+
+  deleteAbsence: async (absenceId) => {
+    await useStore.getState().makeApiCall(`/api/absences/${absenceId}`, 'DELETE');
+    set((prev) => ({
+      absentees: prev.absentees.filter((absence) => absence.id !== absenceId),
+      absences: prev.absences.filter((absence) => absence.id !== absenceId),
+    }));
   },
 
   fetchTrainingModules: async () => {
@@ -271,7 +331,7 @@ const useStore = create((set) => ({
     try {
         await useStore.getState().fetchUsers();
         await useStore.getState().fetchPlanograms();
-        await useStore.getState().fetchAbsentees();
+  await useStore.getState().fetchAbsentees();
         const [phases, roles, userRoles, rolePhases, tasks, trainingModules] = await Promise.all([
             useStore.getState().fetchPhases(),
             useStore.getState().fetchRoles(),
@@ -378,24 +438,12 @@ const useStore = create((set) => ({
   },
   handleAddNewAbsence: () => {
     const { newAbsenceData } = useStore.getState();
-    useStore.getState().makeApiCall(
-        "/api/absences",
-        'POST',
-        newAbsenceData
-    ).then((data) => {
-        set(prev => ({
-            absentees: [...prev.absentees, { ...newAbsenceData, id: data.id, approved: false, approvalDate: null }],
-            newAbsenceData: { user_id: '', start_date: '', end_date: '', reason: '' }
-        }));
+    useStore.getState().createAbsence(newAbsenceData).then(() => {
+        set({ newAbsenceData: { user_id: '', start_date: '', end_date: '', reason: '' } });
     });
   },
   handleDeleteAbsence: (absenceId) => {
-    useStore.getState().makeApiCall(
-        `/api/absences/${absenceId}`,
-        'DELETE'
-    ).then(() => {
-        set(prev => ({ absentees: prev.absentees.filter(absence => absence.id !== absenceId) }));
-    });
+    useStore.getState().deleteAbsence(absenceId);
   },
   handleApproveAbsence: (absenceId) => {
     const newApprovalDate = new Date().toISOString().split('T')[0];
@@ -408,6 +456,11 @@ const useStore = create((set) => ({
             absentees: prev.absentees.map(absence => 
               absence.id === absenceId 
                 ? { ...absence, approved: true, approvalDate: newApprovalDate }
+                : absence
+            ),
+            absences: prev.absences.map(absence => 
+              absence.id === absenceId 
+                ? normalizeAbsence({ ...absence, approved: true, approvalDate: newApprovalDate })
                 : absence
             )
         }));
