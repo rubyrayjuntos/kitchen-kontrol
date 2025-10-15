@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
-const { body, validationResult } = require('express-validator');
+const { phaseValidation } = require('../middleware/validation');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res) => {
@@ -14,14 +14,7 @@ router.get("/", auth, (req, res) => {
     });
 });
 
-router.post("/", auth,
-    body('title').notEmpty(),
-    body('time').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post("/", auth, phaseValidation.create, (req, res, next) => {
     const { title, time } = req.body;
     const id = title.toLowerCase().replace(/\s/g, '-');
     db.run(
@@ -41,14 +34,7 @@ router.post("/", auth,
     );
 });
 
-router.put("/:id", auth, 
-    body('title').notEmpty(),
-    body('time').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.put("/:id", auth, phaseValidation.update, (req, res, next) => {
     const { title, time } = req.body;
     db.run(
         `UPDATE phases SET title = ?, time = ? WHERE id = ?`,

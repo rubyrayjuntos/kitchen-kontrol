@@ -5,16 +5,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
-const { body, validationResult } = require('express-validator');
+const { authValidation } = require('../middleware/validation');
 
-router.post("/login",
-    body('email').isEmail(),
-    body('password').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post("/login", authValidation.login, (req, res, next) => {
     const { email, password } = req.body;
     console.log('Login attempt for email:', email);
     db.get("SELECT * FROM users WHERE email = ?", [email], async (err, user) => {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
-const { body, validationResult } = require('express-validator');
+const { taskValidation } = require('../middleware/validation');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res) => {
@@ -28,13 +28,7 @@ router.get("/", auth, (req, res) => {
     }
 });
 
-router.post("/", auth,
-    body('name').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post("/", auth, taskValidation.create, (req, res, next) => {
     const { name, description, role_id } = req.body;
     db.run(
         `INSERT INTO tasks (name, description, role_id) VALUES (?, ?, ?)`,
@@ -54,13 +48,7 @@ router.post("/", auth,
     );
 });
 
-router.put("/:id", auth,
-    body('name').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.put("/:id", auth, taskValidation.update, (req, res, next) => {
     const { name, description, role_id } = req.body;
     db.run(
         `UPDATE tasks SET name = ?, description = ?, role_id = ? WHERE id = ?`,

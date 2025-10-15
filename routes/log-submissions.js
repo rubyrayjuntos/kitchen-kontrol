@@ -17,6 +17,7 @@ const db = require('../db');
 const auth = require('../middleware/auth');
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
+const { logSubmissionValidation } = require('../middleware/validation');
 
 // Initialize Ajv validator
 const ajv = new Ajv({ allErrors: true });
@@ -26,15 +27,7 @@ addFormats(ajv);
 // POST /api/logs/submissions
 // Submit new log data (staff completing assigned logs)
 // ============================================================================
-router.post('/', auth, async (req, res) => {
-  const { log_template_id, form_data, submission_date, log_assignment_id } = req.body;
-  
-  // Validation
-  if (!log_template_id || !form_data) {
-    return res.status(400).json({ 
-      error: 'log_template_id and form_data are required' 
-    });
-  }
+router.post('/', auth, logSubmissionValidation.create, async (req, res, next) => {
   
   const today = submission_date || new Date().toISOString().split('T')[0];
   

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
-const { body, validationResult } = require('express-validator');
+const { roleValidation } = require('../middleware/validation');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res) => {
@@ -14,13 +14,7 @@ router.get("/", auth, (req, res) => {
     });
 });
 
-router.post("/", auth,
-    body('name').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post("/", auth, roleValidation.create, (req, res, next) => {
     const { name } = req.body;
     const id = name.toLowerCase().replace(/\s/g, '-');
     db.run(
@@ -40,13 +34,7 @@ router.post("/", auth,
     );
 });
 
-router.put("/:id", auth, 
-    body('name').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.put("/:id", auth, roleValidation.update, (req, res, next) => {
     const { name } = req.body;
     db.run(
         `UPDATE roles SET name = ? WHERE id = ?`,
@@ -83,14 +71,7 @@ router.delete("/:id", auth, (req, res, next) => {
     );
 });
 
-router.post("/assign", auth,
-    body('userId').notEmpty(),
-    body('roleId').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post("/assign", auth, roleValidation.assign, (req, res, next) => {
     const { userId, roleId } = req.body;
     db.run(
         `INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)`,

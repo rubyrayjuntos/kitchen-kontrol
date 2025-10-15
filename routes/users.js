@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
 const bcrypt = require('bcryptjs');
-const { body, validationResult } = require('express-validator');
+const { userValidation } = require('../middleware/validation');
 const auth = require('../middleware/auth');
 
 router.get("/", auth, (req, res, next) => {
@@ -15,17 +15,8 @@ router.get("/", auth, (req, res, next) => {
     });
 });
 
-router.post("/", auth, 
-    body('name').notEmpty(),
-    body('email').isEmail(),
-    body('password').isLength({ min: 6 }),
-    async (req, res, next) => {
+router.post("/", auth, userValidation.create, async (req, res, next) => {
     console.log('POST /api/users request body:', req.body);
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        console.error('Validation errors:', errors.array());
-        return res.status(400).json({ errors: errors.array() });
-    }
     const { name, email, password, phone, permissions } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     db.run(
@@ -48,15 +39,7 @@ router.post("/", auth,
     );
 });
 
-router.put("/:id", auth,
-    body('name').notEmpty(),
-    body('email').isEmail(),
-    body('permissions').notEmpty(),
-    (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.put("/:id", auth, userValidation.update, (req, res, next) => {
     const { name, email, phone, permissions } = req.body;
     db.run(
         `UPDATE users SET name = ?, email = ?, phone = ?, permissions = ? WHERE id = ?`,
@@ -93,7 +76,7 @@ router.delete("/:id", auth, (req, res, next) => {
     );
 });
 
-router.get("/:id/tasks", auth, (req, res, next) => {
+router.get("/:id/tasks", auth, userValidation.getById, (req, res, next) => {
     const query = `
         SELECT t.id, t.name, t.description, ls.status
         FROM tasks t
