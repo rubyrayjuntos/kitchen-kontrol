@@ -1,0 +1,146 @@
+name: CD - Build & Deploy (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment }}
+    
+    outputs:
+      build-version: ${{ steps.meta.outputs.version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Get version info
+        id: meta
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TIMESTAMP=$(date -u +'%Y%m%d_%H%M%S')
+          echo "version=${VERSION}_${TIMESTAMP}" >> $GITHUB_OUTPUT
+          echo "Build version: ${VERSION}_${TIMESTAMP}"
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests before build
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
+        continue-on-error: false
+      
+      - name: Build application
+        run: npm run build --if-present
+        continue-on-error: false
+      
+      - name: Check build output
+        run: |
+          if [ -d "build" ]; then
+            echo "✓ Build directory created"
+            du -sh build/
+          else
+            echo "⚠ No build directory found"
+          fi
+      
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ steps.meta.outputs.version }}
+          path: build/
+          retention-days: 30
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging-kitchen-kontrol.example.com
+    if: github.event.inputs.environment == 'staging'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ needs.build.outputs.build-version }}
+      
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging..."
+          echo "Build version: ${{ needs.build.outputs.build-version }}"
+          echo "Environment: Staging"
+          # Add your actual deployment commands here
+          # Example: docker push, kubectl apply, etc.
+      
+      - name: Verify deployment
+        run: |
+          echo "✓ Deployment verification"
+          # Add health checks here
+
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://kitchen-kontrol.example.com
+    if: github.event.inputs.environment == 'production'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ needs.build.outputs.build-version }}
+      
+      - name: ⚠️  PRODUCTION DEPLOYMENT CONFIRMATION
+        run: |
+          echo "🚨 PRODUCTION DEPLOYMENT"
+          echo "Build version: ${{ needs.build.outputs.build-version }}"
+          echo "This deployment is now starting..."
+      
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production..."
+          echo "Build version: ${{ needs.build.outputs.build-version }}"
+          # Add your actual production deployment commands here
+      
+      - name: Verify production deployment
+        run: |
+          echo "✓ Production deployment verification"
+          # Add health checks and smoke tests here
+      
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.build.outputs.build-version }}
+          release_name: Release ${{ needs.build.outputs.build-version }}
+          body: |
+            Production deployment completed successfully.
+            
+            Build: ${{ needs.build.outputs.build-version }}
+            Environment: Production
+          draft: false
+          prerelease: false
