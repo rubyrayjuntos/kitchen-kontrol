@@ -1,5 +1,24 @@
 # Testing Quick Reference
 
+## 🚀 Quick Start
+
+### Without Docker (Local Node)
+```bash
+npm test
+```
+
+### With Docker (Full Stack)
+```bash
+# Start containers
+docker-compose -f docker-compose.test.yml up -d
+
+# Run tests against Docker
+npx cypress run  # E2E tests
+npm test -- --testPathPattern="integration"  # Integration tests
+```
+
+---
+
 ## Run All Tests
 ```bash
 npm test
@@ -54,6 +73,51 @@ npm test 2>&1 | grep "✕"
 npm test -- --no-coverage 2>&1 | grep "Tests:"
 ```
 
+## Docker Testing Commands
+
+### Local Development with Docker
+```bash
+# Start full stack
+docker-compose up -d
+
+# Start test stack (isolated)
+docker-compose -f docker-compose.test.yml up -d
+
+# View logs
+docker-compose -f docker-compose.test.yml logs -f backend
+
+# Cleanup
+docker-compose -f docker-compose.test.yml down -v
+```
+
+### E2E Tests with Docker
+```bash
+# Start test stack
+docker-compose -f docker-compose.test.yml up -d
+
+# Interactive mode
+npx cypress open
+
+# Headless mode
+npx cypress run
+
+# Specific test file
+npx cypress run --spec "cypress/e2e/auth.cy.js"
+```
+
+### Integration Tests with Docker
+```bash
+# Start test stack
+docker-compose -f docker-compose.test.yml up -d
+
+# Run integration tests
+DATABASE_URL="postgresql://test_user:test_password@localhost:5433/kitchen_kontrol_test" \
+npm test -- --testPathPattern="integration" --watchAll=false
+
+# Cleanup
+docker-compose -f docker-compose.test.yml down -v
+```
+
 ## File Structure
 ```
 kitchen-kontrol/
@@ -77,7 +141,18 @@ kitchen-kontrol/
 │   └── setupTests.js             # React test setup
 ├── jest.config.js                # Jest configuration
 ├── .babelrc                       # Babel JSX configuration
-└── .github/workflows/            # GitHub Actions (TODO)
+├── cypress.config.js             # Cypress E2E configuration
+├── docker-compose.yml            # Dev stack (frontend + backend + db)
+├── docker-compose.test.yml       # Test stack (isolated)
+├── Dockerfile.server             # Backend container
+├── Dockerfile.client             # Frontend container
+└── .github/workflows/
+    ├── ci.yml                    # Test & lint
+    ├── e2e.yml                   # E2E without Docker
+    ├── e2e-docker.yml            # E2E with Docker (NEW)
+    ├── cd.yml                    # Deployment
+    ├── code-quality.yml          # Coverage & analysis
+    └── pr-automation.yml         # PR validation
 ```
 
 ## Test Suite Status
@@ -177,7 +252,10 @@ describe('ComponentName', () => {
 
 ## Documentation
 
-- See `WEEK3_COMPONENT_TESTING_COMPLETE.md` for full details
+- See `WEEK3_COMPONENT_TESTING_COMPLETE.md` for component test details
+- See `DOCKER_TESTING_GUIDE.md` for Docker testing guide (NEW)
+- See `E2E_TESTING_GUIDE.md` for E2E testing details
+- See `GITHUB_ACTIONS_SETUP.md` for CI/CD details
 - Test files contain inline comments
 - Each test is self-documenting with clear names
 

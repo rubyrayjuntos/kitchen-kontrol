@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: kitchen_kontrol_test
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'  # Different port to avoid conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      DATABASE_URL: postgres://test_user:test_password@db:5432/kitchen_kontrol_test
+      PORT: 3002
+      NODE_ENV: test
+      API_URL: http://localhost:3002
+    ports:
+      - '3002:3002'
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    environment:
+      REACT_APP_API_URL: http://localhost:3002
+      NODE_ENV: test
+    ports:
+      - '3000:80'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  pgdata_test:
