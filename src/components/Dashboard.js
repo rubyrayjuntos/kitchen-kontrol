@@ -9,21 +9,12 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="container" style={{ padding: 'var(--spacing-6)', maxWidth: '1400px', margin: '0 auto' }}>
-      {/* Row 1: Daily Kitchen Phases Timeline - Full Width */}
-      <div style={{ marginBottom: 'var(--spacing-6)' }}>
+    <div className="dashboard-container">
+      <div className="dashboard-section">
         <DailyKitchenPhasesTimeline />
       </div>
 
-      {/* Row 2: Role Assignments (Left) and Absences (Right) - Half Width Each */}
-      <div 
-        style={{ 
-          display: 'grid', 
-          gridTemplateColumns: '1fr 1fr', 
-          gap: 'var(--spacing-6)',
-          marginBottom: 'var(--spacing-6)'
-        }}
-      >
+      <div className="dashboard-grid">
         <DailyRoleAssignmentsWidget />
         <UpcomingAbsencesWidget />
       </div>

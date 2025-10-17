@@ -28,3 +28,14 @@ root.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+// Register a service worker that injects the ngrok skip header when the app runs through an ngrok tunnel.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/ngrok-bypass-sw.js').catch((error) => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('ngrok bypass service worker registration failed', error);
+      }
+    });
+  });
+}

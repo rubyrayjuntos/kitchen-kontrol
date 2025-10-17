@@ -28,6 +28,10 @@ app.get('/api', (req, res) => {
     res.json({ message: 'Kitchen Kontrol API is running!' });
 });
 
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
+});
+
 
 const phasesRouter = require('./routes/phases');
 app.use('/api/phases', phasesRouter);

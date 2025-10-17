@@ -49,6 +49,12 @@
   justify-content: space-between;
 }
 
+.navbar-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
 .navbar-brand {
   margin-right: 2rem;
 }
@@ -63,6 +69,33 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-3);
+  }
+
+  .navbar-header {
+    justify-content: space-between;
+  }
+
+  .navbar-brand {
+    margin-right: 0;
+    font-size: 1.05rem;
+  }
+
+  .navbar-utils {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-3);
+  }
+
+  .navbar-utils .neumorphic-inset {
+    width: 100%;
+  }
 }
 
 /* Spacing */

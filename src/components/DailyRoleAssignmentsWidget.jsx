@@ -1,14 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Users, ChevronRight, Calendar, FileText } from 'lucide-react';
+import { Users, ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
 import Modal from './Modal';
 import useStore from '../store';
 import { apiRequest } from '../utils/api';
+
+const BREAKFAST_CUTOFF_MINUTES = 8 * 60 + 30;
+
+const parseTimeToMinutes = (value) => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const [rawHours, rawMinutes] = value.split(':');
+  const hours = Number.parseInt(rawHours, 10);
+  const minutes = Number.parseInt(rawMinutes, 10);
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null;
+  }
+
+  return (hours * 60) + minutes;
+};
 
 const DailyRoleAssignmentsWidget = () => {
   const { users = [], userRoles = [], rolePhases = [], roles = [], scheduleData = {}, tasks = [], user } = useStore();
   const [selectedUser, setSelectedUser] = useState(null);
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [logAssignments, setLogAssignments] = useState([]);
+  const [assignmentIndex, setAssignmentIndex] = useState(0);
 
   // Fetch log assignments for today
   useEffect(() => {
@@ -56,17 +75,22 @@ const DailyRoleAssignmentsWidget = () => {
       .forEach(rp => {
         const phase = scheduleData.phases?.[rp.phase_id];
         const phaseName = phase?.title || phase?.name || 'Unassigned Phase';
+        const phaseStartTime = phase?.time || phase?.startTime || null;
         const roleName = roleLookup.get(rp.role_id)?.name || 'Unassigned Role';
 
         if (!assignmentsByPhase.has(phaseName)) {
-          assignmentsByPhase.set(phaseName, []);
+          assignmentsByPhase.set(phaseName, {
+            roles: [],
+            startTime: phaseStartTime
+          });
         }
-        assignmentsByPhase.get(phaseName).push(roleName);
+        assignmentsByPhase.get(phaseName).roles.push(roleName);
       });
 
-    return Array.from(assignmentsByPhase.entries()).map(([phaseName, roleNames]) => ({
+    return Array.from(assignmentsByPhase.entries()).map(([phaseName, details]) => ({
       phase: phaseName,
-      roles: roleNames
+      roles: details.roles,
+      startTime: details.startTime
     }));
   };
 
@@ -109,9 +133,117 @@ const DailyRoleAssignmentsWidget = () => {
     }))
     .filter(mappedUser => Array.isArray(mappedUser.assignments) && mappedUser.assignments.length > 0) : [];
 
+  const assignmentCards = usersWithAssignments
+    .map(userWith => {
+      if (!Array.isArray(userWith.assignments)) {
+        return null;
+      }
+
+      const assignmentsWithMinutes = userWith.assignments
+        .map(assignment => ({
+          ...assignment,
+          startMinutes: parseTimeToMinutes(assignment.startTime)
+        }))
+        .sort((a, b) => {
+          const minutesA = a.startMinutes ?? Number.POSITIVE_INFINITY;
+          const minutesB = b.startMinutes ?? Number.POSITIVE_INFINITY;
+          return minutesA - minutesB;
+        });
+
+      const pickRoleFromAssignment = (assignment, keyword) => {
+        if (!assignment || !Array.isArray(assignment.roles)) {
+          return null;
+        }
+
+        if (keyword) {
+          const keywordMatch = assignment.roles.find(roleName =>
+            typeof roleName === 'string' && roleName.toLowerCase().includes(keyword)
+          );
+          if (keywordMatch) {
+            return keywordMatch;
+          }
+        }
+
+        return assignment.roles.find(roleName => typeof roleName === 'string' && roleName.trim().length > 0) || null;
+      };
+
+      const breakfastAssignment = assignmentsWithMinutes.find(assignment =>
+        typeof assignment.startMinutes === 'number' && assignment.startMinutes < BREAKFAST_CUTOFF_MINUTES
+      ) || userWith.assignments.find(({ phase = '' }) =>
+        typeof phase === 'string' && phase.toLowerCase().includes('breakfast')
+      );
+
+      const lunchAssignment = assignmentsWithMinutes.find(assignment =>
+        typeof assignment.startMinutes === 'number' && assignment.startMinutes >= BREAKFAST_CUTOFF_MINUTES
+      ) || userWith.assignments.find(({ phase = '' }) =>
+        typeof phase === 'string' && phase.toLowerCase().includes('lunch')
+      );
+
+      const collectedRoles = [];
+
+      const breakfastRoleName = pickRoleFromAssignment(breakfastAssignment, 'bfst');
+      if (breakfastRoleName && !collectedRoles.some(role => role.name === breakfastRoleName)) {
+        collectedRoles.push({ name: breakfastRoleName, timing: 'breakfast' });
+      }
+
+      const lunchRoleName = pickRoleFromAssignment(lunchAssignment, 'lunch');
+      if (lunchRoleName && !collectedRoles.some(role => role.name === lunchRoleName)) {
+        collectedRoles.push({ name: lunchRoleName, timing: 'lunch' });
+      }
+
+      if (collectedRoles.length === 0 && userWith.assignments.length > 0) {
+        const fallbackRole = pickRoleFromAssignment(assignmentsWithMinutes[0] || userWith.assignments[0]);
+        if (fallbackRole) {
+          collectedRoles.push({ name: fallbackRole, timing: 'other' });
+        }
+      }
+
+      if (collectedRoles.length === 0) {
+        return null;
+      }
+
+      return {
+        userId: userWith.id,
+        userName: userWith.name || 'Unnamed User',
+        userInitial: userWith.name?.charAt(0).toUpperCase() || 'U',
+        stats: userWith.stats,
+        logStats: userWith.logStats,
+        roles: collectedRoles
+      };
+    })
+    .filter(Boolean);
+
+  const assignmentCardCount = assignmentCards.length;
+
+  useEffect(() => {
+    if (assignmentCardCount === 0) {
+      setAssignmentIndex(0);
+      return;
+    }
+
+    setAssignmentIndex(prev => {
+      if (prev < assignmentCardCount) {
+        return prev;
+      }
+      return assignmentCardCount - 1;
+    });
+  }, [assignmentCardCount]);
+
+  const handlePrevAssignment = () => {
+    if (assignmentCardCount === 0) return;
+    setAssignmentIndex(prev => (prev === 0 ? assignmentCardCount - 1 : prev - 1));
+  };
+
+  const handleNextAssignment = () => {
+    if (assignmentCardCount === 0) return;
+    setAssignmentIndex(prev => (prev === assignmentCardCount - 1 ? 0 : prev + 1));
+  };
+
   // Handle view tasks
-  const handleViewTasks = (user) => {
-    setSelectedUser(user);
+  const handleViewTasks = (userId) => {
+    const fullUser = usersWithAssignments.find(existing => existing.id === userId);
+    if (!fullUser) return;
+    setSelectedUser(fullUser);
     setShowTasksModal(true);
   };
 
@@ -171,145 +303,180 @@ const DailyRoleAssignmentsWidget = () => {
         overflowY: 'auto',
         background: 'var(--bg-elevated)'
       }}>
-        {usersWithAssignments.length === 0 ? (
+        {assignmentCardCount === 0 ? (
           <div className="text-center text-secondary" style={{ padding: 'var(--spacing-6)' }}>
             No role assignments for today yet.
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gap: 'var(--spacing-3)',
-              gridAutoFlow: 'row',
-              alignContent: 'start'
-            }}
-          >
-            {usersWithAssignments.map(user => (
-              <div
-                key={user.id}
-                className="neumorphic-raised"
-                style={{
-                  padding: 'var(--spacing-4)',
-                  width: '100%',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                onClick={() => handleViewTasks(user)}
-              >
-                {/* User Info */}
-                <div className="d-flex items-center justify-between mb-3">
-                  <div className="d-flex items-center gap-3">
-                    <div 
-                      className="neumorphic-raised" 
-                      style={{ 
-                        width: '40px', 
-                        height: '40px', 
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'var(--bg-primary)',
-                        fontWeight: 'bold',
-                        fontSize: '1.1rem',
-                        color: 'var(--color-accent)'
-                      }}
-                    >
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold" style={{ fontSize: '1rem' }}>
-                        {user.name || 'Unnamed User'}
-                      </h4>
-                      {user.stats.total > 0 && (
-                        <div className="text-secondary text-sm">
-                          {user.stats.completed} of {user.stats.total} tasks completed ({user.stats.percentage}%)
-                        </div>
-                      )}
-                      {user.logStats.total > 0 && (
-                        <div className="text-sm" style={{ 
-                          color: user.logStats.completed === user.logStats.total 
-                            ? 'var(--color-success)' 
-                            : 'var(--color-warning)'
-                        }}>
-                          <FileText size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                          {user.logStats.completed}/{user.logStats.total} logs completed
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight size={20} className="text-secondary" />
-                </div>
+          (() => {
+            const currentCard = assignmentCards[assignmentIndex];
 
-                {/* Role Assignments */}
-                <div 
-                  className="text-secondary" 
-                  style={{ 
-                    fontSize: '0.875rem',
-                    lineHeight: '1.6',
-                    paddingLeft: '52px'
+            if (!currentCard) {
+              return null;
+            }
+
+            const taskStats = currentCard.stats || { completed: 0, total: 0, percentage: 0 };
+            const logStats = currentCard.logStats || { completed: 0, total: 0, percentage: 0 };
+            const roleList = Array.isArray(currentCard.roles) ? currentCard.roles : [];
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)', alignItems: 'center' }}>
+                <div
+                  className="neumorphic-raised"
+                  style={{
+                    padding: 'var(--spacing-4)',
+                    width: 'min(100%, 340px)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
                   }}
+                  onClick={() => handleViewTasks(currentCard.userId)}
                 >
-                  <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: 'var(--spacing-1)' }}>
-                    Roles
-                  </strong>
-                  <div className="d-flex flex-column" style={{ gap: 'var(--spacing-1)' }}>
-                    {user.assignments.map(({ phase, roles }) => (
-                      <div key={`${user.id}-${phase}`}>
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{phase}</span>
-                        <span>: {roles.join(', ')}</span>
+                  {/* User Info */}
+                  <div className="d-flex items-center justify-between mb-3">
+                    <div className="d-flex items-center gap-3">
+                      <div 
+                        className="neumorphic-raised" 
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--bg-primary)',
+                          fontWeight: 'bold',
+                          fontSize: '1.1rem',
+                          color: 'var(--color-accent)'
+                        }}
+                      >
+                        {currentCard.userInitial}
                       </div>
-                    ))}
+                      <div>
+                        <h4 className="font-semibold" style={{ fontSize: '1rem' }}>
+                          {currentCard.userName}
+                        </h4>
+                        {taskStats.total > 0 && (
+                          <div className="text-secondary text-sm">
+                            {taskStats.completed} of {taskStats.total} tasks completed ({taskStats.percentage}%)
+                          </div>
+                        )}
+                        {logStats.total > 0 && (
+                          <div className="text-sm" style={{ 
+                            color: logStats.completed === logStats.total 
+                              ? 'var(--color-success)' 
+                              : 'var(--color-warning)'
+                          }}>
+                            <FileText size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                            {logStats.completed}/{logStats.total} logs completed
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight size={20} className="text-secondary" />
                   </div>
+
+                  {/* Role Assignment */}
+                  <div 
+                    className="text-secondary" 
+                    style={{ 
+                      fontSize: '0.875rem',
+                      lineHeight: '1.6',
+                      paddingLeft: '52px'
+                    }}
+                  >
+                    <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: 'var(--spacing-1)' }}>
+                      Assigned Roles
+                    </strong>
+                    {roleList.length === 0 ? (
+                      <span>No roles assigned</span>
+                    ) : (
+                      <div className="d-flex flex-column" style={{ gap: 'var(--spacing-1)' }}>
+                        {roleList.map(({ name, timing }) => (
+                          <span
+                            key={`${currentCard.userId}-${name}-${timing}`}
+                            className={
+                              timing === 'breakfast'
+                                ? 'role-tag role-tag--breakfast'
+                                : timing === 'lunch'
+                                  ? 'role-tag role-tag--lunch'
+                                  : 'role-tag'
+                            }
+                          >
+                            {`${timing === 'breakfast' ? 'Breakfast' : timing === 'lunch' ? 'Lunch' : 'Role'} · ${name}`}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Progress Bar */}
+                  {taskStats.total > 0 && (
+                    <div style={{ 
+                      marginTop: 'var(--spacing-3)',
+                      paddingLeft: '52px'
+                    }}>
+                      <div style={{
+                        height: '6px',
+                        background: 'var(--bg-secondary)',
+                        borderRadius: 'var(--radius-full)',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${taskStats.percentage}%`,
+                          background: 'var(--color-accent)',
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Log Progress Bar */}
+                  {logStats.total > 0 && (
+                    <div style={{ 
+                      marginTop: 'var(--spacing-2)',
+                      paddingLeft: '52px'
+                    }}>
+                      <div style={{
+                        height: '6px',
+                        background: 'var(--bg-secondary)',
+                        borderRadius: 'var(--radius-full)',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${logStats.percentage}%`,
+                          background: logStats.completed === logStats.total 
+                            ? 'var(--color-success)' 
+                            : 'var(--color-warning)',
+                          transition: 'width 0.3s ease'
+                        }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Progress Bar */}
-                {user.stats.total > 0 && (
-                  <div style={{ 
-                    marginTop: 'var(--spacing-3)',
-                    paddingLeft: '52px'
-                  }}>
-                    <div style={{
-                      height: '6px',
-                      background: 'var(--bg-secondary)',
-                      borderRadius: 'var(--radius-full)',
-                      overflow: 'hidden',
-                    }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${user.stats.percentage}%`,
-                        background: 'var(--color-accent)',
-                        transition: 'width 0.3s ease'
-                      }} />
+                {assignmentCardCount > 1 && (
+                  <div
+                    className="role-carousel-controls"
+                    style={{ width: 'min(100%, 340px)' }}
+                  >
+                    <button className="btn btn-ghost" onClick={handlePrevAssignment} aria-label="Previous assignment">
+                      <ChevronLeft size={18} />
+                      Previous
+                    </button>
+                    <div className="role-carousel-indicator">
+                      {assignmentIndex + 1} / {assignmentCardCount}
                     </div>
-                  </div>
-                )}
-
-                {/* Log Progress Bar */}
-                {user.logStats.total > 0 && (
-                  <div style={{ 
-                    marginTop: 'var(--spacing-2)',
-                    paddingLeft: '52px'
-                  }}>
-                    <div style={{
-                      height: '6px',
-                      background: 'var(--bg-secondary)',
-                      borderRadius: 'var(--radius-full)',
-                      overflow: 'hidden',
-                    }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${user.logStats.percentage}%`,
-                        background: user.logStats.completed === user.logStats.total 
-                          ? 'var(--color-success)' 
-                          : 'var(--color-warning)',
-                        transition: 'width 0.3s ease'
-                      }} />
-                    </div>
+                    <button className="btn btn-ghost" onClick={handleNextAssignment} aria-label="Next assignment">
+                      Next
+                      <ChevronRight size={18} />
+                    </button>
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+            );
+          })()
         )}
       </div>
 
