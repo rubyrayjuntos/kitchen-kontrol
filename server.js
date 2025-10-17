@@ -1,11 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const db = require('./db.js');
 const { apiLimiter, loginLimiter } = require('./middleware/rateLimiter');
-const { errorHandler, AppError } = require('./middleware/errorHandler');
+const { errorHandler } = require('./middleware/errorHandler');
 const { logger, requestLogger } = require('./middleware/logger');
 const { sentryRequestHandler, sentryErrorHandler } = require('./middleware/errorTracking');
+const { startOutboxRelay } = require('./services/events/outboxRelay');
 
 const app = express();
 
@@ -110,4 +110,9 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
     logger.info(`Server is running on port ${PORT}`);
+    if (process.env.ENABLE_OUTBOX_RELAY !== 'false') {
+        startOutboxRelay();
+    } else {
+        logger.info('Outbox relay disabled via ENABLE_OUTBOX_RELAY flag.');
+    }
 });

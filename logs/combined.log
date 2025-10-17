@@ -1,0 +1,2 @@
+{"level":"info","message":"Server is running on port 3002","service":"kitchen-kontrol-api","timestamp":"2025-10-16 00:33:50"}
+{"batchSize":20,"level":"info","message":"Outbox relay started","pollIntervalMs":5000,"service":"kitchen-kontrol-api","timestamp":"2025-10-16 00:33:50"}

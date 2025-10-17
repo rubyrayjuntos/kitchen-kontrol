@@ -350,6 +350,106 @@ router.get('/compliance-summary', auth, async (req, res) => {
 });
 
 /**
+ * GET /api/reports/log-history
+ *
+ * Returns detailed submissions for one or more log templates within a date range.
+ *
+ * Query params:
+ * - start_date (required)
+ * - end_date (required)
+ * - template_ids (optional, comma separated template ids)
+ *
+ * Response format:
+ * {
+ *   date_range: { start, end },
+ *   submissions: [
+ *     {
+ *       id,
+ *       template_id,
+ *       template_name,
+ *       category,
+ *       submission_date,
+ *       submitted_at,
+ *       submitted_by,
+ *       submitted_by_name,
+ *       data,
+ *       status
+ *     }, ...
+ *   ]
+ * }
+ */
+router.get('/log-history', auth, async (req, res) => {
+  try {
+    const { start_date, end_date, template_ids } = req.query;
+
+    if (!start_date || !end_date) {
+      return res.status(400).json({ error: 'start_date and end_date are required' });
+    }
+
+    const templateFilter = [];
+    const params = [start_date, end_date];
+
+    if (template_ids) {
+      const ids = template_ids
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      if (ids.length > 0) {
+        const placeholders = ids.map((_, idx) => `$${idx + 3}`).join(',');
+        templateFilter.push(`AND ls.log_template_id IN (${placeholders})`);
+        params.push(...ids);
+      }
+    }
+
+    const query = `
+      SELECT
+        ls.id,
+        ls.log_template_id,
+        lt.name AS template_name,
+        lt.category,
+        ls.submission_date,
+        ls.submitted_at,
+        ls.status,
+        ls.form_data,
+        u.id AS submitted_by,
+        u.name AS submitted_by_name
+      FROM log_submissions ls
+      JOIN log_templates lt ON ls.log_template_id = lt.id
+      JOIN users u ON ls.submitted_by = u.id
+      WHERE ls.submission_date >= $1
+        AND ls.submission_date <= $2
+        ${templateFilter.join(' ')}
+      ORDER BY ls.submission_date DESC, ls.submitted_at DESC
+    `;
+
+    const result = await db.query(query, params);
+
+    res.json({
+      date_range: {
+        start: start_date,
+        end: end_date
+      },
+      submissions: result.rows.map((row) => ({
+        id: row.id,
+        template_id: row.log_template_id,
+        template_name: row.template_name,
+        category: row.category,
+        submission_date: row.submission_date,
+        submitted_at: row.submitted_at,
+        submitted_by: row.submitted_by,
+        submitted_by_name: row.submitted_by_name,
+        status: row.status,
+        data: row.form_data
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching log history:', error);
+    res.status(500).json({ error: 'Failed to fetch log history' });
+  }
+});
+
+/**
  * Helper function to check a submission for compliance violations
  * Returns an array of violation objects
  */

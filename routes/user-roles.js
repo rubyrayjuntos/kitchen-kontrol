@@ -22,13 +22,14 @@ router.get('/', auth, (req, res) => {
 router.post('/assign', auth, (req, res) => {
   const { userId, roleId } = req.body;
 
-  db.run('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', [userId, roleId], function(err) {
-    if (err) {
-      console.error(err.message);
-      return res.status(500).send('Server error');
-    }
-    res.json({ msg: 'Role assigned successfully' });
-  });
+  db.query('INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2) RETURNING user_id, role_id', [userId, roleId])
+    .then((result) => {
+      res.json({ msg: 'Role assigned successfully', data: result.rows[0] });
+    })
+    .catch((err) => {
+      console.error('Failed to assign role:', err.message);
+      res.status(500).send('Server error');
+    });
 });
 
 module.exports = router;

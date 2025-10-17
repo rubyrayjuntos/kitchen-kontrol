@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   BarChart3, 
   DollarSign, 
@@ -8,7 +8,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 import useStore from '../store';
 import { apiRequest } from '../utils/api';
@@ -31,6 +32,11 @@ const LogReportsView = () => {
   const [weeklyStatus, setWeeklyStatus] = useState(null);
   const [mealsData, setMealsData] = useState(null);
   const [complianceData, setComplianceData] = useState(null);
+  const [historyData, setHistoryData] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
+  const [templateOptions, setTemplateOptions] = useState([]);
+  const [selectedTemplates, setSelectedTemplates] = useState([]);
   
   // UI state
   const [loading, setLoading] = useState(false);
@@ -46,6 +52,24 @@ const LogReportsView = () => {
       end: end.toISOString().split('T')[0],
     };
   });
+
+  useEffect(() => {
+    const loadTemplates = async () => {
+      if (!user?.token) return;
+      try {
+        const data = await apiRequest('/api/logs/templates', user.token);
+        setTemplateOptions(data);
+        setSelectedTemplates((prev) => {
+          if (prev.length > 0) return prev;
+          return data.map((tpl) => String(tpl.id));
+        });
+      } catch (err) {
+        console.error('Failed to load log templates for reports:', err);
+      }
+    };
+
+    loadTemplates();
+  }, [user?.token]);
 
   // Fetch all reports
   const fetchReports = useCallback(async () => {
@@ -76,12 +100,130 @@ const LogReportsView = () => {
     }
   }, [user.token, dateRange.start, dateRange.end]);
 
+  const fetchLogHistory = useCallback(async () => {
+    if (!user?.token) {
+      return;
+    }
+
+    try {
+      setHistoryLoading(true);
+      setHistoryError(null);
+
+      if (selectedTemplates.length === 0) {
+        setHistoryData({
+          date_range: {
+            start: dateRange.start,
+            end: dateRange.end
+          },
+          submissions: []
+        });
+        setHistoryLoading(false);
+        return;
+      }
+
+      const params = new URLSearchParams({
+        start_date: dateRange.start,
+        end_date: dateRange.end
+      });
+
+      params.set('template_ids', selectedTemplates.join(','));
+
+      const history = await apiRequest(`/api/reports/log-history?${params.toString()}`, user.token);
+      setHistoryData(history);
+    } catch (err) {
+      console.error('Error fetching log history:', err);
+      setHistoryError(err.message || 'Failed to load log history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [user?.token, dateRange.start, dateRange.end, selectedTemplates]);
+
   // Fetch on mount and when date range changes
   useEffect(() => {
     if (user?.token) {
       fetchReports();
     }
   }, [user?.token, fetchReports]);
+
+  useEffect(() => {
+    if (activeTab === 'history' && user?.token) {
+      fetchLogHistory();
+    }
+  }, [activeTab, user?.token, fetchLogHistory]);
+
+  const handleRefresh = useCallback(() => {
+    fetchReports();
+    if (activeTab === 'history') {
+      fetchLogHistory();
+    }
+  }, [fetchReports, fetchLogHistory, activeTab]);
+
+  const toggleTemplateSelection = useCallback((templateId) => {
+    setSelectedTemplates((prev) => {
+      if (prev.includes(templateId)) {
+        return prev.filter((id) => id !== templateId);
+      }
+      return [...prev, templateId];
+    });
+  }, []);
+
+  const selectAllTemplates = useCallback(() => {
+    setSelectedTemplates(templateOptions.map((tpl) => String(tpl.id)));
+  }, [templateOptions]);
+
+  const clearTemplateSelection = useCallback(() => {
+    setSelectedTemplates([]);
+  }, []);
+
+  const templateLookup = useMemo(() => {
+    return templateOptions.reduce((acc, tpl) => {
+      acc[tpl.id] = tpl;
+      return acc;
+    }, {});
+  }, [templateOptions]);
+
+  const formatKey = (key) => key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+  const renderValue = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return <span className="text-secondary">—</span>;
+    }
+
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      if (value.includes('\n')) {
+        return (
+          <pre style={{
+            margin: 0,
+            background: 'rgba(15,23,42,0.04)',
+            padding: 'var(--spacing-2)',
+            borderRadius: 'var(--radius-sm)'
+          }}>{value}</pre>
+        );
+      }
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+
+    return (
+      <pre style={{
+        margin: 0,
+        background: 'rgba(15,23,42,0.04)',
+        padding: 'var(--spacing-2)',
+        borderRadius: 'var(--radius-sm)'
+      }}>{JSON.stringify(value, null, 2)}</pre>
+    );
+  };
 
   // Render weekly status report
   const renderWeeklyStatus = () => {
@@ -172,6 +314,161 @@ const LogReportsView = () => {
             })}
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderLogHistory = () => {
+    if (historyLoading && !historyData) {
+      return (
+        <div className="card-sm text-center" style={{ padding: 'var(--spacing-8)' }}>
+          <div className="spinner" style={{ margin: '0 auto var(--spacing-4)' }} />
+          <p className="text-secondary">Loading log history…</p>
+        </div>
+      );
+    }
+
+    if (historyError) {
+      return (
+        <div className="card-sm" style={{ padding: 'var(--spacing-4)', color: 'var(--color-error)' }}>
+          <h4 className="font-semibold" style={{ marginBottom: 'var(--spacing-2)' }}>Unable to load log history</h4>
+          <p className="text-sm" style={{ marginBottom: 'var(--spacing-3)' }}>{historyError}</p>
+          <button className="btn btn-primary" onClick={fetchLogHistory} disabled={historyLoading}>
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    if (!historyData) {
+      return (
+        <div className="card-sm text-center" style={{ padding: 'var(--spacing-8)' }}>
+          <FileText size={48} style={{ margin: '0 auto var(--spacing-4)', opacity: 0.3 }} />
+          <p className="text-secondary">Choose a date range and templates, then click update.</p>
+        </div>
+      );
+    }
+
+    const submissions = historyData.submissions || [];
+
+    if (submissions.length === 0) {
+      if (selectedTemplates.length === 0) {
+        return (
+          <div className="card-sm text-center" style={{ padding: 'var(--spacing-8)' }}>
+            <FileText size={48} style={{ margin: '0 auto var(--spacing-4)', opacity: 0.3 }} />
+            <h4 className="font-semibold" style={{ marginBottom: 'var(--spacing-2)' }}>Select at least one log template</h4>
+            <p className="text-secondary">Use the template filters above to choose which logs to view.</p>
+          </div>
+        );
+      }
+      return (
+        <div className="card-sm text-center" style={{ padding: 'var(--spacing-8)' }}>
+          <FileText size={48} style={{ margin: '0 auto var(--spacing-4)', opacity: 0.3 }} />
+          <h4 className="font-semibold" style={{ marginBottom: 'var(--spacing-2)' }}>No log submissions</h4>
+          <p className="text-secondary">Try expanding the date range or selecting additional templates.</p>
+        </div>
+      );
+    }
+
+    const grouped = submissions.reduce((acc, submission) => {
+      const key = submission.template_id;
+      if (!acc[key]) {
+        acc[key] = {
+          template: submission.template_name,
+          category: submission.category,
+          entries: []
+        };
+      }
+      acc[key].entries.push(submission);
+      return acc;
+    }, {});
+
+    const sections = Object.entries(grouped).sort((a, b) => {
+      const nameA = a[1].template.toLowerCase();
+      const nameB = b[1].template.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    const statusBaseStyle = {
+      fontSize: '0.78rem',
+      borderRadius: '999px',
+      padding: '0.25rem 0.75rem',
+      fontWeight: 600,
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '0.35rem',
+      letterSpacing: '0.02em',
+      textTransform: 'capitalize'
+    };
+
+    return (
+      <div style={{ display: 'grid', gap: 'var(--spacing-4)' }}>
+        <div className="d-flex items-center justify-between" style={{ marginBottom: 'var(--spacing-2)' }}>
+          <p className="text-sm text-secondary">
+            {historyData.date_range.start} to {historyData.date_range.end} • {submissions.length} submission{submissions.length === 1 ? '' : 's'}
+          </p>
+        </div>
+
+        {sections.map(([templateId, info]) => {
+          const tplMeta = templateLookup[templateId];
+          const frequencyLabel = tplMeta?.frequency;
+          const entries = info.entries
+            .slice()
+            .sort((a, b) => new Date(b.submission_date) - new Date(a.submission_date));
+
+          return (
+            <div key={templateId} className="card-sm" style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
+              <div className="d-flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold" style={{ marginBottom: 'var(--spacing-1)' }}>{info.template}</h4>
+                  <p className="text-xs text-secondary">
+                    {info.category}{frequencyLabel ? ` • ${frequencyLabel}` : ''} • {entries.length} submission{entries.length === 1 ? '' : 's'}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
+                {entries.map((entry) => {
+                  const statusStyle = {
+                    ...statusBaseStyle,
+                    background: entry.status === 'completed' ? 'rgba(34,197,94,0.12)' : 'rgba(234,179,8,0.12)',
+                    color: entry.status === 'completed' ? '#15803d' : '#b45309',
+                    border: entry.status === 'completed'
+                      ? '1px solid rgba(22,163,74,0.4)'
+                      : '1px solid rgba(217,119,6,0.32)'
+                  };
+
+                  return (
+                    <div key={entry.id} className="neumorphic-inset" style={{ padding: 'var(--spacing-4)' }}>
+                      <div className="d-flex items-start justify-between" style={{ marginBottom: 'var(--spacing-3)' }}>
+                        <div>
+                          <div className="font-semibold text-sm" style={{ marginBottom: 'var(--spacing-1)' }}>
+                            {new Date(entry.submitted_at).toLocaleString()} ({entry.submission_date})
+                          </div>
+                          <div className="text-xs text-secondary">
+                            Submitted by {entry.submitted_by_name}
+                          </div>
+                        </div>
+                        <span className="logs-status-pill" style={statusStyle}>
+                          {entry.status.replace('_', ' ')}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'grid', gap: 'var(--spacing-2)' }}>
+                        {Object.entries(entry.data || {}).map(([field, value]) => (
+                          <div key={field} style={{ display: 'grid', gap: 'var(--spacing-1)' }}>
+                            <div className="text-xs text-secondary">{formatKey(field)}</div>
+                            <div className="text-sm">{renderValue(value)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -433,7 +730,7 @@ const LogReportsView = () => {
   };
 
   // Main render
-  if (loading && !weeklyStatus && !mealsData && !complianceData) {
+  if (loading && !weeklyStatus && !mealsData && !complianceData && activeTab !== 'history') {
     return (
       <div className="p-6">
         <h1 className="text-3xl font-bold text-neumorphic-embossed" style={{ marginBottom: 'var(--spacing-6)' }}>
@@ -498,10 +795,60 @@ const LogReportsView = () => {
             className="neumorphic-input"
             style={{ width: 'auto' }}
           />
-          <button onClick={fetchReports} className="btn btn-primary" disabled={loading}>
-            {loading ? 'Loading...' : 'Update'}
+          <button onClick={handleRefresh} className="btn btn-primary" disabled={loading || historyLoading}>
+            {loading || historyLoading ? 'Loading...' : 'Update'}
           </button>
         </div>
+
+        {activeTab === 'history' && (
+          <div className="neumorphic-inset" style={{ padding: 'var(--spacing-4)', marginTop: 'var(--spacing-4)', width: '100%' }}>
+            <div className="d-flex items-start justify-between" style={{ marginBottom: 'var(--spacing-3)', gap: 'var(--spacing-3)' }}>
+              <div>
+                <h4 className="font-semibold text-base" style={{ marginBottom: 'var(--spacing-1)' }}>Filter by Log Template</h4>
+                <p className="text-xs text-secondary">
+                  Select specific logs to narrow the results. Auditors typically review Food Temperatures and Equipment Temperatures.
+                </p>
+              </div>
+              <div className="d-flex gap-2">
+                <button type="button" className="btn btn-ghost" onClick={selectAllTemplates} disabled={templateOptions.length === 0}>
+                  Select All
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={clearTemplateSelection}>
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-2)' }}>
+              {templateOptions.map((template) => {
+                const id = String(template.id);
+                const checked = selectedTemplates.includes(id);
+                return (
+                  <label
+                    key={template.id}
+                    className="neumorphic-inset"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 'var(--spacing-2)',
+                      padding: 'var(--spacing-2) var(--spacing-3)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleTemplateSelection(id)}
+                    />
+                    <span className="text-sm" style={{ fontWeight: checked ? 600 : 400 }}>{template.name}</span>
+                  </label>
+                );
+              })}
+              {templateOptions.length === 0 && (
+                <p className="text-sm text-secondary">No active log templates available.</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -527,6 +874,13 @@ const LogReportsView = () => {
           <AlertTriangle size={16} style={{ marginRight: 'var(--spacing-2)' }} />
           Compliance
         </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-outline'}`}
+        >
+          <FileText size={16} style={{ marginRight: 'var(--spacing-2)' }} />
+          Log History
+        </button>
       </div>
 
       {/* Report content */}
@@ -534,6 +888,7 @@ const LogReportsView = () => {
         {activeTab === 'weekly-status' && renderWeeklyStatus()}
         {activeTab === 'meals' && renderMealsReport()}
         {activeTab === 'compliance' && renderComplianceSummary()}
+        {activeTab === 'history' && renderLogHistory()}
       </div>
     </div>
   );

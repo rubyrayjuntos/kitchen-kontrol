@@ -25,12 +25,20 @@ try {
 
 // Middleware to capture request
 const sentryRequestHandler = () => {
-  return Sentry.requestHandler?.();
+  const handlerFactory = Sentry?.Handlers?.requestHandler || Sentry?.requestHandler;
+  if (typeof handlerFactory === 'function') {
+    return handlerFactory();
+  }
+  return (req, res, next) => next();
 };
 
 // Middleware to capture errors
 const sentryErrorHandler = () => {
-  return Sentry.errorHandler?.();
+  const handlerFactory = Sentry?.Handlers?.errorHandler || Sentry?.errorHandler;
+  if (typeof handlerFactory === 'function') {
+    return handlerFactory();
+  }
+  return (err, req, res, next) => next(err);
 };
 
 // Manual error reporting

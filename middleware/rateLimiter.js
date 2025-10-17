@@ -1,24 +1,28 @@
 const rateLimit = require('express-rate-limit');
 
-// General API rate limiter
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,                   // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,      // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false,       // Disable the `X-RateLimit-*` headers
-});
+const isProduction = process.env.NODE_ENV === 'production';
+const noopMiddleware = (req, res, next) => next();
 
-// Strict login rate limiter
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 5,                     // 5 login attempts
-  message: 'Too many login attempts. Please try again after 15 minutes.',
-  skipSuccessfulRequests: true, // Don't count successful logins
-  keyGenerator: (req, res) => {
-    // Rate limit by email address for more precision
-    return req.body?.email || req.ip;
-  },
-});
+// General API rate limiter (only active in production)
+const apiLimiter = isProduction
+  ? rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 500, // allow generous headroom for dashboard bursts
+      message: 'Too many requests from this IP, please try again later.',
+      standardHeaders: true,
+      legacyHeaders: false,
+    })
+  : noopMiddleware;
+
+// Strict login rate limiter (only active in production)
+const loginLimiter = isProduction
+  ? rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 5,
+      message: 'Too many login attempts. Please try again after 15 minutes.',
+      skipSuccessfulRequests: true,
+      keyGenerator: (req) => req.body?.email?.toLowerCase() || 'anonymous-login',
+    })
+  : noopMiddleware;
 
 module.exports = { apiLimiter, loginLimiter };

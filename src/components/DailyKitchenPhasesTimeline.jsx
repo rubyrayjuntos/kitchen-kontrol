@@ -57,7 +57,18 @@ const DailyKitchenPhasesTimeline = () => {
 
   // Helper: Parse time string to minutes since midnight
   const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    if (typeof timeStr !== 'string' || !timeStr.includes(':')) {
+      return TIMELINE_START_HOUR * 60;
+    }
+
+    const [rawHours = '0', rawMinutes = '0'] = timeStr.split(':');
+    const hours = Number.parseInt(rawHours, 10);
+    const minutes = Number.parseInt(rawMinutes, 10);
+
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+      return TIMELINE_START_HOUR * 60;
+    }
+
     return hours * 60 + minutes;
   };
 
@@ -70,12 +81,15 @@ const DailyKitchenPhasesTimeline = () => {
 
   // Parse phases from scheduleData
   const phases = scheduleData.phases ? Object.entries(scheduleData.phases)
-    .map(([id, phase]) => ({
-      id,
-      name: phase.title || phase.name,
-      startTime: phase.time,
-      ...phase
-    }))
+    .map(([id, phase]) => {
+      const rawStartTime = phase.time || phase.startTime || `${TIMELINE_START_HOUR.toString().padStart(2, '0')}:00`;
+      return {
+        id,
+        name: phase.title || phase.name || 'Untitled Phase',
+        startTime: rawStartTime,
+        ...phase
+      };
+    })
     .sort((a, b) => {
       const timeA = parseTime(a.startTime);
       const timeB = parseTime(b.startTime);
