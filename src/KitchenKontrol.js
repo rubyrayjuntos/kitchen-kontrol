@@ -1,20 +1,20 @@
 import React, { useEffect } from 'react';
-import NavigationBar from './components/NavigationBar';
-import Dashboard from './components/Dashboard';
-import LogsView from './components/LogsView';
-import LogReportsView from './components/LogReportsView';
-import TrainingView from './components/TrainingView';
-import PlanogramView from './components/PlanogramView';
-import LogAssignmentWidget from './components/LogAssignmentWidget';
+import NavigationBar from './components/common/NavigationBar';
+import Dashboard from './components/dashboard/Dashboard';
+import LogsView from './components/logs/LogsView';
+import LogReportsView from './components/logs/LogReportsView';
+import TrainingView from './components/management/TrainingView';
+import PlanogramView from './components/management/PlanogramView';
+import LogAssignmentWidget from './components/logs/LogAssignmentWidget';
 import useStore from './store';
 
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
-import Login from './components/Login';
-import UserManagement from './components/UserManagement';
-import MyTasks from './components/MyTasks';
-import FormRendererTest from './components/FormRendererTest';
-import RolesManagementView from './components/RolesManagementView';
+import Login from './components/auth/Login';
+import UserManagement from './components/management/UserManagement';
+import MyTasks from './components/tasks/MyTasks';
+import FormRendererTest from './components/forms/FormRendererTest';
+import RolesManagementView from './components/management/RolesManagementView';
 
 const KitchenKontrol = () => {
   const {
