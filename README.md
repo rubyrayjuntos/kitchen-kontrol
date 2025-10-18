@@ -19,6 +19,15 @@ Kitchen Kontrol is a production-ready web application built for commercial kitch
 - **FormRenderer**: Ajv validation, React Hook Form integration, 7 field types
 - **Audit Trail**: Complete trail of all submissions with timestamps
 
+### ✅ **Task Management** ⭐ **Phase 5 New!**
+- **Excel-Style Table**: View all tasks organized by kitchen phase and time
+- **Real-Time Filtering**: Filter by All/Active/Completed status
+- **Phase Grouping**: Tasks automatically grouped by kitchen operation phase
+- **Staff Assignment**: See which team member is assigned to each role/task
+- **Time-Based Sorting**: Tasks sorted chronologically from Pre Breakfast (7:00 AM) through End of Day Clean (12:45 PM)
+- **Progress Tracking**: Real-time completion progress percentage and counters
+- **Task Details**: Task name, description, assigned role, assigned person, phase, and time all visible at a glance
+
 ### 📈 **Reporting & Analytics** ⭐ **Phase 3 Complete!**
 - **Weekly Log Status**: CTE queries show completion rates with color-coded progress bars (🟢 ≥90%, 🟡 70-89%, 🔴 <70%)
 - **Reimbursable Meals Report**: JSONB operators check all 5 components, calculate revenue ($3.50/meal), daily breakdown
@@ -79,9 +88,15 @@ docker compose ps
 - Backend API: http://localhost:3002
 - PostgreSQL: localhost:5432
 
-**Default login:**
-- Email: `admin@kitchen.local`
-- Password: `admin123`
+**Default login (Ray Swan - Admin):**
+- Email: `raymond.swan@sodexo.com`
+- Password: `password`
+
+**Other staff logins available:**
+- Juanita Council (Staff)
+- Peter Marencelli (Staff)
+- Monzale (Staff)
+- Veronica (Staff)
 
 ### **Option 2: Local Development**
 ```bash
@@ -158,7 +173,7 @@ Themes are saved to localStorage and persist across sessions.
 ### Logging Tables ⭐ **Phase 3 Complete!**
 - `log_templates` - JSON Schema definitions for 5 log types
 - `log_assignments` - Scheduled log assignments (user/role/phase targets, due times, days of week)
-- `log_submissions` - Completed logs with JSONB form_data
+- `log_submissions` - Completed logs with JSONB form_data (92 submissions from 30 weekdays)
 - `planograms` - Steamer well layouts (legacy, pre-Phase 2)
 - `training_progress` - User training completion tracking
 
@@ -175,24 +190,24 @@ Themes are saved to localStorage and persist across sessions.
 ### Operations
 - `GET /api/phases` - List kitchen phases
 - `GET /api/roles` - List roles
-- `GET /api/tasks` - List tasks
+- `GET /api/tasks` - List tasks with phase and role information
 - `GET /api/users` - List users (admin only)
 - `POST /api/absences` - Request absence
 - `PUT /api/absences/:id` - Approve/deny absence
 
 ### Logging ⭐ **Phase 3 Complete!**
-- `GET /api/logs/templates` - List all log templates
+- `GET /api/logs/templates` - List all log templates (5 types available)
 - `GET /api/logs/templates/:id` - Get template with JSON Schema
 - `POST /api/logs/assignments` - Create assignment (admin only)
 - `GET /api/logs/assignments` - List assignments (admin view)
-- `GET /api/logs/assignments/me` - Get current user's assignments
+- `GET /api/logs/assignments/me` - Get current user's assignments (today's duties)
 - `POST /api/logs/submissions` - Submit completed log with form data
 - `GET /api/logs/submissions` - List all submissions (admin)
 - `GET /api/logs/submissions/me` - Get user's submission history
 
 ### Reports ⭐ **Phase 3 Complete!**
-- `GET /api/reports/weekly-log-status` - Completion rates by template
-- `GET /api/reports/reimbursable-meals` - Revenue tracking with date range
+- `GET /api/reports/weekly-log-status` - Completion rates by template (color-coded)
+- `GET /api/reports/reimbursable-meals` - Revenue tracking with date range (calculated at $3.50/meal)
 - `GET /api/reports/compliance-summary` - Violation detection and analysis
 - `GET /api/performance` - Staff performance metrics (legacy)
 - `GET /api/audit-log` - Audit trail (legacy)
@@ -220,6 +235,50 @@ docker compose --env-file .env.production up -d
 ```
 
 ## 📊 Features in Detail
+
+### ⭐ Task Management System (Phase 5 New!)
+**Backend Architecture:**
+- 212 tasks across 9 kitchen phases
+- Real-time task filtering and sorting
+- Role-to-phase mapping with multiple assignments per phase
+- Permission-based access control (admin sees all, staff see assigned roles)
+- Enhanced task queries with phase and role information
+
+**Frontend Components:**
+- **MyTasks.jsx** - Excel-like table interface with columns:
+  * Checkbox for task completion
+  * Task Name
+  * Description
+  * Assigned To (person's name)
+  * Role badge
+  * Phase badge
+  * Time of day
+
+**Features:**
+- **Filter Controls** - All / Active / Completed task views
+- **Phase Grouping** - Tasks automatically grouped by kitchen phase
+- **Time-Based Sorting** - Chronologically sorted (7:00 AM to 12:45 PM)
+- **Progress Tracking** - Real-time completion percentage and task counters
+- **Responsive Design** - Works on desktop, tablet, mobile
+- **Visual Status** - Color-coded badges, alternating row colors, hover effects
+
+**9 Kitchen Phases (with task counts):**
+1. Pre Breakfast (7:00 AM) - 15 tasks
+2. Breakfast (8:00 AM) - 15 tasks
+3. Lunch Prep and Food Delivery (8:30 AM) - 26 tasks
+4. Lunch 1 (10:15 AM) - 26 tasks
+5. Lunch 2 (10:45 AM) - 26 tasks
+6. Mid Lunch Clean (11:15 AM) - 26 tasks
+7. Lunch 3 (11:45 AM) - 26 tasks
+8. Lunch 4 (12:15 PM) - 26 tasks
+9. End of Day Clean (12:45 PM) - 26 tasks
+
+**Real Kitchen Staff:**
+- Ray Swan (Admin) - Assigned to multiple roles
+- Juanita Council - Bfst Line & POS
+- Peter Marencelli - Bfst Cart Hall
+- Monzale - Bfst Cart Gym
+- Veronica - Various roles
 
 ### ⭐ Dynamic Logs System (Phase 3 Complete!)
 **Backend Architecture:**
@@ -275,6 +334,14 @@ Original hardcoded logging for health department compliance:
 - Portion counts and waste tracking
 - Reimbursable meal component verification (5 required components)
 - Sanitizer levels and test strip verification
+
+### Task Management (Phase 5 New!)
+Real-time task tracking and completion monitoring:
+- 212 tasks across 9 kitchen phases
+- Organized by time of day (Pre Breakfast through End of Day Clean)
+- Assigned to specific staff members by role
+- Excel-like interface with filtering, grouping, and progress tracking
+- Real-time status indicators (all/active/completed)
 
 ### Planogram Editor
 Visual drag-and-drop editor for steamer well layouts:
