@@ -5,57 +5,92 @@ const bcrypt = require('bcryptjs');
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const phases = [
-  { id: 'prep', title: 'Morning Prep', time: '07:00', status: 'completed' },
-  { id: 'breakfast', title: 'Breakfast Service', time: '09:00', status: 'active' },
-  { id: 'mid-morning', title: 'Mid-Morning Cleaning', time: '10:30', status: 'pending' },
-  { id: 'lunch-prep', title: 'Lunch Prep', time: '11:30', status: 'pending' },
-  { id: 'lunch', title: 'Lunch Service', time: '12:30', status: 'pending' },
-  { id: 'snack', title: 'Afternoon Snack', time: '14:30', status: 'pending' },
-  { id: 'shutdown', title: 'End-of-Day Sanitation', time: '16:00', status: 'pending' }
+  { id: 'pre-breakfast', title: 'Pre Breakfast', time: '07:00', status: 'pending' },
+  { id: 'breakfast', title: 'Breakfast', time: '08:00', status: 'pending' },
+  { id: 'lunch-prep', title: 'Lunch Prep and Food Delivery', time: '08:30', status: 'pending' },
+  { id: 'lunch-1', title: 'lunch 1', time: '10:15', status: 'pending' },
+  { id: 'lunch-2', title: 'Lunch 2', time: '10:45', status: 'pending' },
+  { id: 'mid-lunch-clean', title: 'Mid Lunch Clean', time: '11:15', status: 'pending' },
+  { id: 'lunch-3', title: 'Lunch 3', time: '11:45', status: 'pending' },
+  { id: 'lunch-4', title: 'Lunch 4', time: '12:15', status: 'pending' },
+  { id: 'end-of-day', title: 'End of Day Clean', time: '12:45', status: 'pending' }
 ];
 
 const roles = [
-  { id: 'kitchen-manager', name: 'Kitchen Manager' },
-  { id: 'head-chef', name: 'Head Chef' },
-  { id: 'sous-chef', name: 'Sous Chef' },
-  { id: 'line-cook-breakfast', name: 'Line Cook - Breakfast' },
-  { id: 'line-cook-lunch', name: 'Line Cook - Lunch' },
-  { id: 'dishwasher', name: 'Dishwasher' },
-  { id: 'runner', name: 'Runner' }
+  { id: 'lunch-pos-2', name: 'Lunch POS 2' },
+  { id: 'lead', name: 'Lead' },
+  { id: 'lunch-pos-1', name: 'Lunch POS 1' },
+  { id: 'lunch-line-1', name: 'Lunch Line 1' },
+  { id: 'lunch-line-2', name: 'Lunch Line 2' },
+  { id: 'bfst-line-pos', name: 'Bfst Line & POS' },
+  { id: 'bfst-cart-hall', name: 'Bfst Cart Hall' },
+  { id: 'bfst-cart-gym', name: 'Bfst Cart Gym' }
 ];
 
 const rolePhases = [
-  { role_id: 'kitchen-manager', phase_id: 'prep' },
-  { role_id: 'kitchen-manager', phase_id: 'shutdown' },
-  { role_id: 'head-chef', phase_id: 'prep' },
-  { role_id: 'head-chef', phase_id: 'breakfast' },
-  { role_id: 'head-chef', phase_id: 'lunch' },
-  { role_id: 'sous-chef', phase_id: 'prep' },
-  { role_id: 'sous-chef', phase_id: 'lunch-prep' },
-  { role_id: 'line-cook-breakfast', phase_id: 'prep' },
-  { role_id: 'line-cook-breakfast', phase_id: 'breakfast' },
-  { role_id: 'line-cook-lunch', phase_id: 'lunch-prep' },
-  { role_id: 'line-cook-lunch', phase_id: 'lunch' },
-  { role_id: 'dishwasher', phase_id: 'mid-morning' },
-  { role_id: 'dishwasher', phase_id: 'shutdown' },
-  { role_id: 'runner', phase_id: 'snack' }
+  { role_id: 'bfst-line-pos', phase_id: 'pre-breakfast' },
+  { role_id: 'lead', phase_id: 'pre-breakfast' },
+  { role_id: 'bfst-line-pos', phase_id: 'breakfast' },
+  { role_id: 'lead', phase_id: 'breakfast' }
 ];
 
 const tasks = [
-  { name: 'Finalize production sheet', description: 'Review head count and adjust production sheet before prep begins.', role_id: 'kitchen-manager' },
-  { name: 'Coach staff on compliance focus', description: 'Share daily USDA and safety reminders during lineup.', role_id: 'kitchen-manager' },
-  { name: 'Curtail last-minute menu changes', description: 'Approve substitutions based on inventory and allergies.', role_id: 'head-chef' },
-  { name: 'Taste breakfast offerings', description: 'Sample entrées 15 minutes before service to ensure quality.', role_id: 'head-chef' },
-  { name: 'Verify morning deliveries', description: 'Receive vendors and log temperatures of perishables.', role_id: 'sous-chef' },
-  { name: 'Stage entrees for lunch', description: 'Marinate proteins and prepare sauces for the lunch turn.', role_id: 'sous-chef' },
-  { name: 'Execute breakfast cook line', description: 'Cook main breakfast items and maintain holding temps.', role_id: 'line-cook-breakfast' },
-  { name: 'Set self-serve stations', description: 'Stock fruit, yogurt, and condiments for breakfast service.', role_id: 'line-cook-breakfast' },
-  { name: 'Prep vegetable sides', description: 'Blanch and sauté vegetables for lunch menu items.', role_id: 'line-cook-lunch' },
-  { name: 'Assemble deli station', description: 'Build salads and sandwiches to order during lunch rush.', role_id: 'line-cook-lunch' },
-  { name: 'Maintain dish pit rotation', description: 'Keep the 3-compartment sink cycling during peak times.', role_id: 'dishwasher' },
-  { name: 'Deep clean slicers and mixers', description: 'Detail clean shared equipment during mid-morning break.', role_id: 'dishwasher' },
-  { name: 'Deliver meal carts', description: 'Run meal carts to classrooms and satellite sites on schedule.', role_id: 'runner' },
-  { name: 'Restock disposables', description: 'Replenish grab-and-go packaging and utensils.', role_id: 'runner' }
+  // Lunch POS 2 tasks
+  { name: 'Put food in warmers - portioned for each line and for four lunches', description: 'Stock warmers with portioned food for all lunch services', role_id: 'lunch-pos-2' },
+  { name: 'Sanitize and clean front of line between lunch 2 and 3', description: 'Deep clean line front surfaces during service', role_id: 'lunch-pos-2' },
+  { name: 'Bag fruit if necessary', description: 'Prepare and bag fruit portions as needed', role_id: 'lunch-pos-2' },
+  { name: 'Sweep', description: 'Sweep work area', role_id: 'lunch-pos-2' },
+  { name: 'Clean milk coolers', description: 'Clean and organize milk coolers', role_id: 'lunch-pos-2' },
+  
+  // Lead tasks
+  { name: 'Print out planagram and menu for team', description: 'Print daily planogram and menu for staff reference', role_id: 'lead' },
+  { name: 'Check email and groupme', description: 'Review daily communications', role_id: 'lead' },
+  { name: 'Record breakfast numbers', description: 'Log breakfast service counts', role_id: 'lead' },
+  { name: 'Record lunch numbers', description: 'Log lunch service counts', role_id: 'lead' },
+  { name: 'Record milk count', description: 'Track milk inventory usage', role_id: 'lead' },
+  { name: 'Review cleaning at end of day', description: 'Inspect end-of-day sanitation', role_id: 'lead' },
+  
+  // Lunch POS 1 tasks
+  { name: 'Receive food from truck and verify count', description: 'Check and verify delivered items', role_id: 'lunch-pos-1' },
+  { name: 'Sanitize and clean front of line between lunch 2 and 3', description: 'Deep clean line front surfaces during service', role_id: 'lunch-pos-1' },
+  { name: 'Bag fruit if necessary', description: 'Prepare and bag fruit portions as needed', role_id: 'lunch-pos-1' },
+  { name: 'Mop', description: 'Mop work area', role_id: 'lunch-pos-1' },
+  { name: 'Clean milk coolers', description: 'Clean and organize milk coolers', role_id: 'lunch-pos-1' },
+  
+  // Lunch Line 1 tasks
+  { name: 'Setup food on line with utensils', description: 'Arrange food and utensils for service', role_id: 'lunch-line-1' },
+  { name: 'Setup hot and cold temps for steam table wells', description: 'Configure temperature settings', role_id: 'lunch-line-1' },
+  { name: 'Clean wells after lunch', description: 'Post-service cleanup of steam wells', role_id: 'lunch-line-1' },
+  { name: 'Clean fridges inside and out', description: 'Clean and organize refrigerators', role_id: 'lunch-line-1' },
+  { name: 'Bag dirty pans', description: 'Collect and bag used cookware', role_id: 'lunch-line-1' },
+  
+  // Lunch Line 2 tasks
+  { name: 'Setup food on line with utensils', description: 'Arrange food and utensils for service', role_id: 'lunch-line-2' },
+  { name: 'Setup hot and cold temps for steam table wells', description: 'Configure temperature settings', role_id: 'lunch-line-2' },
+  { name: 'Clean wells after lunch', description: 'Post-service cleanup of steam wells', role_id: 'lunch-line-2' },
+  { name: 'Clean fridges inside and out', description: 'Clean and organize refrigerators', role_id: 'lunch-line-2' },
+  { name: 'Bag dirty pans', description: 'Collect and bag used cookware', role_id: 'lunch-line-2' },
+  
+  // Bfst Line & POS tasks
+  { name: 'Setup line with breakfast', description: 'Prepare breakfast line for service', role_id: 'bfst-line-pos' },
+  { name: 'Put hot food in warmer', description: 'Keep breakfast items hot in warmers', role_id: 'bfst-line-pos' },
+  { name: 'Bag fruit if necessary', description: 'Prepare fruit bags for distribution', role_id: 'bfst-line-pos' },
+  
+  // Bfst Cart Gym tasks
+  { name: 'Load Cart with menu items', description: 'Stock breakfast cart for gym delivery', role_id: 'bfst-cart-gym' },
+  { name: 'Monitor cart and student id entry', description: 'Oversee cart transactions', role_id: 'bfst-cart-gym' },
+  { name: 'Setup pos laptop', description: 'Configure POS system', role_id: 'bfst-cart-gym' },
+  { name: 'Unload cart', description: 'Remove items from cart', role_id: 'bfst-cart-gym' },
+  { name: 'Sign out of POS', description: 'Close out POS session', role_id: 'bfst-cart-gym' },
+  
+  // Bfst Cart Hall tasks
+  { name: 'Load Cart with menu items', description: 'Stock breakfast cart for hall delivery', role_id: 'bfst-cart-hall' },
+  { name: 'Monitor cart and student id entry', description: 'Oversee cart transactions', role_id: 'bfst-cart-hall' },
+  { name: 'Setup pos laptop', description: 'Configure POS system', role_id: 'bfst-cart-hall' },
+  { name: 'Unload cart', description: 'Remove items from cart', role_id: 'bfst-cart-hall' },
+  { name: 'Sign out of POS', description: 'Close out POS session', role_id: 'bfst-cart-hall' },
+  { name: 'Take equipment temps', description: 'Record equipment temperatures', role_id: 'bfst-cart-hall' },
+  { name: 'Setup sanitation station and test and log', description: 'Prepare sanitation station and log readings', role_id: 'bfst-cart-hall' }
 ];
 
 const trainingModules = [
@@ -171,98 +206,54 @@ const trainingModules = [
   }
 ];
 
-const ingredients = [
-  { name: 'Ground Beef', quantity: 15, unit: 'lbs', category: 'meat', minStock: 5 },
-  { name: 'Burger Buns', quantity: 24, unit: 'pcs', category: 'bread', minStock: 10 },
-  { name: 'Lettuce', quantity: 3, unit: 'heads', category: 'produce', minStock: 5 },
-  { name: 'Tomatoes', quantity: 8, unit: 'lbs', category: 'produce', minStock: 3 },
-  { name: 'Pears', quantity: 12, unit: 'pcs', category: 'fruit', minStock: 5 },
-  { name: 'Peaches', quantity: 18, unit: 'pcs', category: 'fruit', minStock: 5 },
-];
+const ingredients = [];
 
 const users = [
   {
-    name: 'Admin User',
-    email: 'admin@kitchen.local',
-    phone: '555-0100',
+    name: 'Ray Swan',
+    email: 'raymond.swan@sodexo.com',
+    phone: '409-264-5074',
     permissions: 'admin',
-    roleIds: ['kitchen-manager']
+    roleIds: ['lead', 'bfst-line-pos']
   },
   {
-    name: 'Demo Admin',
-    email: 'admin@example.com',
-    phone: '555-0105',
-    permissions: 'admin',
-    roleIds: ['kitchen-manager']
-  },
-  {
-    name: 'Allison Kim',
-    email: 'allison.kim@kitchen.local',
-    phone: '555-0101',
-    permissions: 'admin',
-    roleIds: ['head-chef']
-  },
-  {
-    name: 'Marco Rivera',
-    email: 'marco.rivera@kitchen.local',
-    phone: '555-0102',
-    permissions: 'admin',
-    roleIds: ['sous-chef']
-  },
-  {
-    name: 'John Doe',
-    email: 'john.doe@kitchen.local',
-    phone: '555-0110',
+    name: 'Juanita Council',
+    email: 'j@j.com',
+    phone: '1111111111',
     permissions: 'user',
-    roleIds: ['line-cook-breakfast']
+    roleIds: ['lunch-pos-2']
   },
   {
-    name: 'Maria Garcia',
-    email: 'maria.garcia@kitchen.local',
-    phone: '555-0111',
+    name: 'Peter Marencelli',
+    email: 'p@p.com',
+    phone: '3333333333',
     permissions: 'user',
-    roleIds: ['line-cook-lunch']
+    roleIds: ['lunch-pos-1', 'bfst-cart-hall']
   },
   {
-    name: 'Samira Patel',
-    email: 'samira.patel@kitchen.local',
-    phone: '555-0112',
+    name: 'Monzale',
+    email: 'm@m.com',
+    phone: '4444444444',
     permissions: 'user',
-    roleIds: ['dishwasher']
+    roleIds: ['lunch-line-1', 'bfst-cart-gym']
   },
   {
-    name: 'Evan Brooks',
-    email: 'evan.brooks@kitchen.local',
-    phone: '555-0113',
+    name: 'Veronica',
+    email: 'v@v.com',
+    phone: '5555555555',
     permissions: 'user',
-    roleIds: ['runner']
+    roleIds: ['lunch-line-2']
   }
 ];
 
 const absences = [
   {
-    userEmail: 'maria.garcia@kitchen.local',
-    start_date: '2025-10-18',
-    end_date: '2025-10-20',
-    reason: 'Family wedding',
+    userEmail: 'raymond.swan@sodexo.com',
+    start_date: '2025-10-27',
+    end_date: '2025-10-31',
+    reason: 'Time off',
     approved: true,
-    approvalDate: '2025-10-05'
-  },
-  {
-    userEmail: 'evan.brooks@kitchen.local',
-    start_date: '2025-10-21',
-    end_date: '2025-10-21',
-    reason: 'Missed shift follow-up',
-    approved: false,
-    approvalDate: '2025-10-12'
-  },
-  {
-    userEmail: 'samira.patel@kitchen.local',
-    start_date: '2025-10-25',
-    end_date: '2025-10-26',
-    reason: 'Medical appointments',
-    approved: null,
-    approvalDate: null
+    approvalDate: '2025-10-17'
   }
 ];
 
@@ -289,7 +280,7 @@ const logTemplates = [
       corrective_action: { 'ui:widget': 'textarea' },
       notes: { 'ui:widget': 'textarea' }
     },
-    createdByEmail: 'admin@kitchen.local'
+    createdByEmail: 'raymond.swan@sodexo.com'
   },
   {
     name: 'Line Check Temperature Log',
@@ -313,7 +304,7 @@ const logTemplates = [
       status: { 'ui:widget': 'radio' },
       notes: { 'ui:widget': 'textarea' }
     },
-    createdByEmail: 'admin@example.com'
+    createdByEmail: 'raymond.swan@sodexo.com'
   },
   {
     name: 'Sanitation Checklist',
@@ -340,7 +331,7 @@ const logTemplates = [
       waste_removed: { 'ui:widget': 'select' },
       issues: { 'ui:widget': 'textarea' }
     },
-    createdByEmail: 'admin@kitchen.local'
+    createdByEmail: 'raymond.swan@sodexo.com'
   },
   {
     name: 'Cold Holding Log',
@@ -363,7 +354,7 @@ const logTemplates = [
       within_range: { 'ui:widget': 'select' },
       corrective_action: { 'ui:widget': 'textarea' }
     },
-    createdByEmail: 'admin@example.com'
+    createdByEmail: 'raymond.swan@sodexo.com'
   },
   {
     name: 'Reimbursable Meals Count',
@@ -396,7 +387,7 @@ const logTemplates = [
       has_milk: { 'ui:widget': 'select' },
       notes: { 'ui:widget': 'textarea' }
     },
-    createdByEmail: 'admin@kitchen.local'
+    createdByEmail: 'raymond.swan@sodexo.com'
   }
 ];
 
@@ -404,39 +395,39 @@ const logAssignments = [
   {
     templateName: 'Receiving Temperature Log',
     targetType: 'user',
-    targetEmail: 'marco.rivera@kitchen.local',
+    targetEmail: 'raymond.swan@sodexo.com',
     due_time: '07:30',
     days_of_week: 'Mon,Tue,Wed,Thu,Fri',
     notes: 'Record temperatures for every delivery truck.'
   },
   {
     templateName: 'Line Check Temperature Log',
-    targetType: 'role',
-    roleId: 'line-cook-breakfast',
+    targetType: 'user',
+    targetEmail: 'raymond.swan@sodexo.com',
     due_time: '09:15',
     days_of_week: 'Mon,Tue,Wed,Thu,Fri',
     notes: 'Complete prior to opening breakfast service.'
   },
   {
     templateName: 'Cold Holding Log',
-    targetType: 'role',
-    roleId: 'kitchen-manager',
+    targetType: 'user',
+    targetEmail: 'raymond.swan@sodexo.com',
     due_time: '11:00',
     days_of_week: 'Mon,Tue,Wed,Thu,Fri',
     notes: 'Verify mid-day refrigeration temperatures.'
   },
   {
     templateName: 'Sanitation Checklist',
-    targetType: 'phase',
-    phaseId: 'shutdown',
+    targetType: 'user',
+    targetEmail: 'raymond.swan@sodexo.com',
     due_time: '17:00',
     days_of_week: 'Mon,Tue,Wed,Thu,Fri',
     notes: 'Complete during closing procedures.'
   },
   {
     templateName: 'Reimbursable Meals Count',
-    targetType: 'role',
-    roleId: 'kitchen-manager',
+    targetType: 'user',
+    targetEmail: 'raymond.swan@sodexo.com',
     due_time: '13:45',
     days_of_week: 'Mon,Tue,Wed,Thu,Fri',
     notes: 'Record counts for each reimbursable meal service.'
@@ -446,7 +437,7 @@ const logAssignments = [
 const logSubmissions = [
   {
     templateName: 'Reimbursable Meals Count',
-    submittedByEmail: 'admin@kitchen.local',
+    submittedByEmail: 'raymond.swan@sodexo.com',
     submission_date: '2025-10-13',
     formData: {
       meal_period: 'Lunch',
@@ -462,7 +453,7 @@ const logSubmissions = [
   },
   {
     templateName: 'Reimbursable Meals Count',
-    submittedByEmail: 'admin@example.com',
+    submittedByEmail: 'raymond.swan@sodexo.com',
     submission_date: '2025-10-14',
     formData: {
       meal_period: 'Lunch',
@@ -478,7 +469,7 @@ const logSubmissions = [
   },
   {
     templateName: 'Reimbursable Meals Count',
-    submittedByEmail: 'marco.rivera@kitchen.local',
+    submittedByEmail: 'raymond.swan@sodexo.com',
     submission_date: '2025-10-15',
     formData: {
       meal_period: 'Breakfast',
@@ -499,6 +490,7 @@ const logSubmissions = [
   try {
     await client.query('BEGIN');
 
+    console.log('Truncating tables...');
     await client.query(`
       TRUNCATE TABLE
         log_submissions,
@@ -516,6 +508,7 @@ const logSubmissions = [
         ingredients
       RESTART IDENTITY CASCADE
     `);
+    console.log('Tables truncated successfully');
 
     for (const phase of phases) {
       await client.query(
@@ -548,7 +541,7 @@ const logSubmissions = [
 
     for (const ingredient of ingredients) {
       await client.query(
-        'INSERT INTO ingredients (name, quantity, unit, category, minStock) VALUES ($1, $2, $3, $4, $5)',
+        'INSERT INTO ingredients (name, quantity, unit, category, "minStock") VALUES ($1, $2, $3, $4, $5)',
         [ingredient.name, ingredient.quantity, ingredient.unit, ingredient.category, ingredient.minStock]
       );
     }
@@ -576,14 +569,14 @@ const logSubmissions = [
         continue;
       }
       await client.query(
-        'INSERT INTO absences (user_id, start_date, end_date, reason, approved, approvalDate) VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO absences (user_id, start_date, end_date, reason, approved, "approvalDate") VALUES ($1, $2, $3, $4, $5, $6)',
         [user.id, absence.start_date, absence.end_date, absence.reason, absence.approved, absence.approvalDate]
       );
     }
 
   const insertedTemplates = [];
   const insertedAssignments = [];
-    const defaultAssigner = insertedUsers.find((u) => u.email === 'admin@kitchen.local') || insertedUsers[0];
+    const defaultAssigner = insertedUsers.find((u) => u.email === 'raymond.swan@sodexo.com') || insertedUsers[0];
 
     for (const template of logTemplates) {
       const creator = insertedUsers.find((u) => u.email === template.createdByEmail) || defaultAssigner;

@@ -6,7 +6,7 @@ exports.up = (pgm) => {
     ALTER TABLE log_status
     ALTER COLUMN log_id TYPE integer USING (
       CASE
-        WHEN log_id ~ '^[0-9]+$' THEN log_id::integer
+        WHEN log_id::text ~ '^[0-9]+$' THEN log_id::integer
         ELSE NULL
       END
     );

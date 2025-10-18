@@ -14,7 +14,7 @@ const NavigationBar = () => {
     { id: 'training', icon: BookOpen, label: 'Training' },
     { id: 'reports', icon: BarChart3, label: 'Reports', adminOnly: true },
     { id: 'roles-management', icon: Shield, label: 'Roles', adminOnly: true },
-    { id: 'tasks', icon: ClipboardCheck, label: 'Tasks' },
+    { id: 'my-tasks', icon: ClipboardCheck, label: 'Tasks' },
     { id: 'planograms', icon: LayoutGrid, label: 'Planograms' },
     { id: 'users', icon: Users, label: 'Users', adminOnly: true },
     { id: 'form-test', icon: TestTube, label: 'Form Test', adminOnly: true },

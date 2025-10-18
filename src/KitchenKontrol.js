@@ -56,7 +56,7 @@ const KitchenKontrol = () => {
       case 'users':
         return user.permissions === 'admin' ? <UserManagement /> : <Dashboard />;
       case 'my-tasks':
-        return user.permissions === 'user' ? <MyTasks /> : <Dashboard />;
+        return <MyTasks />;
       case 'form-test':
         return <FormRendererTest />;
       default:
