@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db.js');
-const { roleValidation } = require('../middleware/validation');
-const auth = require('../middleware/auth');
-const { ROLE_STATUSES, TASK_STATUSES, PLACEHOLDER_ROLE_ID } = require('../services/lifecycle/constants');
-const { enqueueEvent } = require('../services/events/outbox');
+const db = require('../../db.js');
+const { roleValidation } = require('../../middleware/validation');
+const auth = require('../../middleware/auth');
+const { ROLE_STATUSES, TASK_STATUSES, PLACEHOLDER_ROLE_ID } = require('../../services/lifecycle/constants');
+const { enqueueEvent } = require('../../services/events/outbox');
 
 const isPostgres = Boolean(db._pool);
 

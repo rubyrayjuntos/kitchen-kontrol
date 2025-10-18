@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db.js');
+const db = require('../../db.js');
 const { body, validationResult } = require('express-validator');
-const auth = require('../middleware/auth');
+const auth = require('../../middleware/auth');
 
 router.get("/", auth, (req, res, next) => {
     db.all("SELECT * FROM planograms", [], (err, rows) => {

@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db.js');
+const db = require('../../db.js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
-const { authValidation } = require('../middleware/validation');
+const { authValidation } = require('../../middleware/validation');
 
 router.post("/login", authValidation.login, (req, res, next) => {
     const { email, password } = req.body;

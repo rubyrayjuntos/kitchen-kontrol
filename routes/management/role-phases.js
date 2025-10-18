@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db.js');
-const auth = require('../middleware/auth');
+const db = require('../../db.js');
+const auth = require('../../middleware/auth');
 
 // @route   GET api/role-phases
 // @desc    Get all role-phase relationships

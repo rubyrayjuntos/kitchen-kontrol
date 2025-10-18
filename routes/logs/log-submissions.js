@@ -13,11 +13,11 @@
 
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
-const auth = require('../middleware/auth');
+const db = require('../../db');
+const auth = require('../../middleware/auth');
 const Ajv = require('ajv');
 const addFormats = require('ajv-formats');
-const { logSubmissionValidation } = require('../middleware/validation');
+const { logSubmissionValidation } = require('../../middleware/validation');
 
 // Initialize Ajv validator
 const ajv = new Ajv({ allErrors: true });

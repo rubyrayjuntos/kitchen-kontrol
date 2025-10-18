@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db.js');
+const db = require('../../db.js');
 const { body, validationResult } = require('express-validator');
-const auth = require('../middleware/auth');
+const auth = require('../../middleware/auth');
 
 router.post("/:id/complete", auth,
     body('date').notEmpty(),
