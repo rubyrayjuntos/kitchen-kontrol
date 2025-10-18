@@ -4,6 +4,8 @@
 
 Kitchen Kontrol is a production-ready web application built for commercial kitchen operations. Designed by a school cafeteria manager to solve real-world pain points in food service compliance, staff management, and daily operations.
 
+📚 **[→ Full Documentation in `/docs` folder](docs/README.md)** | Quick links: [Deployment](docs/deployment/DEPLOYMENT_OPTIONS.md) | [Testing](docs/testing/TESTING_QUICK_REFERENCE.md) | [Logs Guide](docs/guides/LOGS_USER_GUIDE.md)
+
 ## ✨ Features
 
 ### 📊 **Operational Management**
@@ -466,3 +468,32 @@ npm run seed:pg
 ```
 
 On Render, provision the Managed Postgres service and set its connection string as `DATABASE_URL` for the backend service. Then either run migrations as part of a deployment step or use Render's dashboard - I can add a `render.yaml` step if you'd like.
+
+---
+
+## 📚 Complete Documentation
+
+All detailed documentation has been organized in the **[`/docs`](docs/)** folder for easy navigation:
+
+### Quick Links
+- 📖 **[Documentation Hub](docs/README.md)** - Complete navigation and index
+- 🚀 **[Deployment Guide](docs/deployment/DEPLOYMENT_OPTIONS.md)** - How to deploy
+- 🧪 **[Testing Guide](docs/testing/TESTING_QUICK_REFERENCE.md)** - How to run tests
+- 📝 **[Logs User Guide](docs/guides/LOGS_USER_GUIDE.md)** - How to use the logging system
+- 📊 **[Phase Documentation](docs/phases/)** - All 4 development phases
+- 🎨 **[Features Documentation](docs/features/)** - Detailed feature docs
+- 👨‍💻 **[Developer Resources](docs/development/)** - For developers
+
+### Documentation Categories
+| Category | Purpose | Files |
+|----------|---------|-------|
+| **[/docs/phases/](docs/phases/)** | Development phase summaries | 6 files |
+| **[/docs/features/](docs/features/)** | Feature documentation | 4 files |
+| **[/docs/deployment/](docs/deployment/)** | Deployment & DevOps guides | 5 files |
+| **[/docs/testing/](docs/testing/)** | Testing frameworks & guides | 3 files |
+| **[/docs/guides/](docs/guides/)** | User & admin guides | 4 files |
+| **[/docs/architecture/](docs/architecture/)** | Technical architecture | 1 file |
+| **[/docs/development/](docs/development/)** | Developer resources | 7 files |
+| **[/docs/archive/](docs/archive/)** | Historical documentation | 28 files |
+
+**Total: 54 documentation files organized in 8 categories**
