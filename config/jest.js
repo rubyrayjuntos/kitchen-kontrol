@@ -1,5 +1,4 @@
-module.exports = require('./config/jest');module.exports = {
-
+module.exports = {
   // Test environment - use jsdom for frontend, node for backend
   testEnvironment: 'jsdom',
 
